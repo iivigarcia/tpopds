@@ -1,12 +1,18 @@
 package com.uade.tpo.controller;
 
+import com.uade.tpo.dto.EquipoCreateDTO;
+import com.uade.tpo.dto.EquipoDTO;
+import com.uade.tpo.dto.UsuarioDTO;
 import com.uade.tpo.model.Equipo;
 import com.uade.tpo.service.EquipoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/equipos")
@@ -15,29 +21,80 @@ public class EquipoController {
     @Autowired
     private EquipoService equipoService;
 
-    @GetMapping
-    public List<Equipo> findAll() {
-        return equipoService.findAll();
+    private UsuarioDTO convertUsuarioToDto(com.uade.tpo.model.Usuario usuario) {
+        UsuarioDTO dto = new UsuarioDTO();
+        dto.setId(usuario.getId());
+        dto.setUsername(usuario.getUsername());
+        dto.setEmail(usuario.getEmail());
+        return dto;
     }
 
-    @GetMapping("/{id}")
-    public Optional<Equipo> findById(@PathVariable Long id) {
-        return equipoService.findById(id);
+    private EquipoDTO convertToDto(Equipo equipo) {
+        EquipoDTO dto = new EquipoDTO();
+        dto.setId(equipo.getId());
+        dto.setNombre(equipo.getNombre());
+        if (equipo.getJugadores() != null) {
+            dto.setJugadores(
+                    equipo.getJugadores().stream().map(this::convertUsuarioToDto).collect(Collectors.toList()));
+        }
+        return dto;
     }
 
     @PostMapping
-    public Equipo create(@RequestBody Equipo equipo) {
-        return equipoService.save(equipo);
+    public ResponseEntity<EquipoDTO> crearEquipo(@RequestBody EquipoCreateDTO equipoCreateDTO) {
+        Equipo nuevoEquipo = equipoService.crearEquipo(equipoCreateDTO);
+        return new ResponseEntity<>(convertToDto(nuevoEquipo), HttpStatus.CREATED);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<EquipoDTO>> obtenerEquipos() {
+        List<Equipo> equipos = equipoService.obtenerEquipos();
+        List<EquipoDTO> equipoDTOs = equipos.stream().map(this::convertToDto).collect(Collectors.toList());
+        return ResponseEntity.ok(equipoDTOs);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<EquipoDTO> obtenerEquipoPorId(@PathVariable Long id) {
+        Optional<Equipo> equipo = equipoService.obtenerEquipoPorId(id);
+        return equipo.map(e -> ResponseEntity.ok(convertToDto(e)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public Equipo update(@PathVariable Long id, @RequestBody Equipo equipo) {
-        equipo.setId(id);
-        return equipoService.save(equipo);
+    public ResponseEntity<EquipoDTO> modificarEquipo(@PathVariable Long id,
+            @RequestBody EquipoCreateDTO equipoCreateDTO) {
+        Equipo equipoActualizado = equipoService.modificarEquipo(id, equipoCreateDTO);
+        if (equipoActualizado != null) {
+            return ResponseEntity.ok(convertToDto(equipoActualizado));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        equipoService.delete(id);
+    public ResponseEntity<Void> eliminarEquipo(@PathVariable Long id) {
+        equipoService.eliminarEquipo(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{equipoId}/jugadores/{usuarioId}")
+    public ResponseEntity<EquipoDTO> agregarJugadorAEquipo(@PathVariable Long equipoId, @PathVariable Long usuarioId) {
+        Equipo equipoActualizado = equipoService.agregarJugador(equipoId, usuarioId);
+        if (equipoActualizado != null) {
+            return ResponseEntity.ok(convertToDto(equipoActualizado));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping("/{equipoId}/jugadores/{usuarioId}")
+    public ResponseEntity<EquipoDTO> eliminarJugadorDeEquipo(@PathVariable Long equipoId,
+            @PathVariable Long usuarioId) {
+        Equipo equipoActualizado = equipoService.eliminarJugador(equipoId, usuarioId);
+        if (equipoActualizado != null) {
+            return ResponseEntity.ok(convertToDto(equipoActualizado));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

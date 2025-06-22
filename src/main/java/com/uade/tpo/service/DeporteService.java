@@ -1,6 +1,7 @@
 package com.uade.tpo.service;
 
-import com.uade.tpo.dao.DeporteRepository;
+import com.uade.tpo.dto.DeporteCreateDTO;
+import com.uade.tpo.repository.DeporteRepository;
 import com.uade.tpo.model.Deporte;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,19 +15,32 @@ public class DeporteService {
     @Autowired
     private DeporteRepository deporteRepository;
 
-    public List<Deporte> findAll() {
-        return deporteRepository.findAll();
-    }
-
-    public Optional<Deporte> findById(Long id) {
-        return deporteRepository.findById(id);
-    }
-
-    public Deporte save(Deporte deporte) {
+    public Deporte crearDeporte(DeporteCreateDTO deporteCreateDTO) {
+        Deporte deporte = new Deporte();
+        deporte.setNombre(deporteCreateDTO.getNombre());
         return deporteRepository.save(deporte);
     }
 
-    public void delete(Long id) {
+    public List<Deporte> obtenerDeportes() {
+        return deporteRepository.findAll();
+    }
+
+    public Optional<Deporte> obtenerDeportePorId(Long id) {
+        return deporteRepository.findById(id);
+    }
+
+    public Deporte modificarDeporte(Long id, DeporteCreateDTO deporteCreateDTO) {
+        Optional<Deporte> deporteExistente = deporteRepository.findById(id);
+        if (deporteExistente.isPresent()) {
+            Deporte deporte = deporteExistente.get();
+            deporte.setNombre(deporteCreateDTO.getNombre());
+            return deporteRepository.save(deporte);
+        }
+        return null;
+    }
+
+    public void eliminarDeporte(Long id) {
         deporteRepository.deleteById(id);
     }
+
 }

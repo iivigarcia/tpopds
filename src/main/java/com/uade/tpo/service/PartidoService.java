@@ -1,7 +1,10 @@
 package com.uade.tpo.service;
 
-import com.uade.tpo.dao.PartidoRepository;
+import com.uade.tpo.dto.PartidoCreateDTO;
+import com.uade.tpo.model.Equipo;
 import com.uade.tpo.model.Partido;
+import com.uade.tpo.repository.EquipoRepository;
+import com.uade.tpo.repository.PartidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,20 +16,32 @@ public class PartidoService {
 
     @Autowired
     private PartidoRepository partidoRepository;
+    @Autowired
+    private EquipoRepository equipoRepository;
 
-    public List<Partido> findAll() {
+    public Optional<Partido> crearPartido(PartidoCreateDTO dto) {
+        Optional<Equipo> equipoLocal = equipoRepository.findById(dto.getEquipoLocalId());
+        Optional<Equipo> equipoVisitante = equipoRepository.findById(dto.getEquipoVisitanteId());
+
+        if (equipoLocal.isPresent() && equipoVisitante.isPresent()) {
+            Partido partido = new Partido();
+            partido.setEquipoLocal(equipoLocal.get());
+            partido.setEquipoVisitante(equipoVisitante.get());
+            partido.setFecha(dto.getFecha());
+            return Optional.of(partidoRepository.save(partido));
+        }
+        return Optional.empty();
+    }
+
+    public List<Partido> obtenerPartidos() {
         return partidoRepository.findAll();
     }
 
-    public Optional<Partido> findById(Long id) {
+    public Optional<Partido> obtenerPartidoPorId(Long id) {
         return partidoRepository.findById(id);
     }
 
-    public Partido save(Partido partido) {
-        return partidoRepository.save(partido);
-    }
-
-    public void delete(Long id) {
+    public void eliminarPartido(Long id) {
         partidoRepository.deleteById(id);
     }
 }
