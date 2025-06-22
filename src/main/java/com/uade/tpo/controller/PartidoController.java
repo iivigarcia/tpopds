@@ -5,6 +5,7 @@ import com.uade.tpo.model.Comentario;
 import com.uade.tpo.model.Estadistica;
 import com.uade.tpo.model.Partido;
 import com.uade.tpo.service.PartidoService;
+import com.uade.tpo.strategy.EmparejamientoResultado;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -111,4 +112,18 @@ public class PartidoController {
         partidoService.eliminarPartido(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/emparejamiento/estrategia")
+    public ResponseEntity<String> seleccionarEstrategia(@RequestParam String tipo) {
+        boolean ok = partidoService.seleccionarEstrategia(tipo);
+        if (ok) return ResponseEntity.ok("Estrategia seleccionada: " + tipo);
+        return ResponseEntity.badRequest().body("Estrategia inválida: " + tipo);
+    }
+
+    @PostMapping("/emparejamiento/ejecutar")
+    public ResponseEntity<List<EmparejamientoResultado>> ejecutarEmparejamiento() {
+        List<EmparejamientoResultado> resultados = partidoService.emparejar();
+        return ResponseEntity.ok(resultados);
+    }
+
 }

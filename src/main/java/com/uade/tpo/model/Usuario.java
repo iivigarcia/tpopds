@@ -18,6 +18,9 @@ public class Usuario {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(name = "ubicacion")
+    private String ubicacion;
+
     @Column(nullable = false)
     private String password;
 }
