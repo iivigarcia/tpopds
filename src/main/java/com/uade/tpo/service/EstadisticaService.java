@@ -1,6 +1,6 @@
 package com.uade.tpo.service;
 
-import com.uade.tpo.dao.EstadisticaRepository;
+import com.uade.tpo.repository.EstadisticaRepository;
 import com.uade.tpo.model.Estadistica;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

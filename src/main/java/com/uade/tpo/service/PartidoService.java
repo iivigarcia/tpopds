@@ -1,6 +1,6 @@
 package com.uade.tpo.service;
 
-import com.uade.tpo.dao.PartidoRepository;
+import com.uade.tpo.repository.PartidoRepository;
 import com.uade.tpo.model.Partido;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

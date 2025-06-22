@@ -1,6 +1,6 @@
 package com.uade.tpo.security;
 
-import com.uade.tpo.dao.UsuarioRepository;
+import com.uade.tpo.repository.UsuarioRepository;
 import com.uade.tpo.model.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -30,8 +30,7 @@ public class SecurityConfig {
                 .csrf().disable() // Para desarrollo, se recomienda activarlo en producción
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .httpBasic();
 
         return http.build();

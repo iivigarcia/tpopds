@@ -1,6 +1,6 @@
 package com.uade.tpo.service;
 
-import com.uade.tpo.dao.UsuarioRepository;
+import com.uade.tpo.repository.UsuarioRepository;
 import com.uade.tpo.model.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;

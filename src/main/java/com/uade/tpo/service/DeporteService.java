@@ -1,6 +1,6 @@
 package com.uade.tpo.service;
 
-import com.uade.tpo.dao.DeporteRepository;
+import com.uade.tpo.repository.DeporteRepository;
 import com.uade.tpo.model.Deporte;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

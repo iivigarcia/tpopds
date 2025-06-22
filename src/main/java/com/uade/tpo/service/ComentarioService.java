@@ -1,6 +1,6 @@
 package com.uade.tpo.service;
 
-import com.uade.tpo.dao.ComentarioRepository;
+import com.uade.tpo.repository.ComentarioRepository;
 import com.uade.tpo.model.Comentario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

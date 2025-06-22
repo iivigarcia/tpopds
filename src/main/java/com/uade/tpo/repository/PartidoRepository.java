@@ -1,4 +1,4 @@
-package com.uade.tpo.dao;
+package com.uade.tpo.repository;
 
 import com.uade.tpo.model.Partido;
 import org.springframework.data.jpa.repository.JpaRepository;

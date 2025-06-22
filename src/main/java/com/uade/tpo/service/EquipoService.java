@@ -1,6 +1,6 @@
 package com.uade.tpo.service;
 
-import com.uade.tpo.dao.EquipoRepository;
+import com.uade.tpo.repository.EquipoRepository;
 import com.uade.tpo.model.Equipo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
