@@ -3,10 +3,9 @@ package com.uade.tpo.dto;
 import lombok.Data;
 
 @Data
-public class EstadisticaDTO {
-  private Long id;
+public class EstadisticaCreateDTO {
   private Long partidoId;
-  private UsuarioDTO jugador;
+  private Long jugadorId;
   private int anotaciones;
   private int asistencias;
   private int amonestaciones;

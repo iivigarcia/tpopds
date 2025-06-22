@@ -3,9 +3,8 @@ package com.uade.tpo.dto;
 import lombok.Data;
 
 @Data
-public class UsuarioDTO {
-  private Long id;
+public class RegistroDTO {
   private String username;
   private String email;
-  // No incluimos password por seguridad
+  private String password;
 }

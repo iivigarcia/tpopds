@@ -1,7 +1,12 @@
 package com.uade.tpo.service;
 
-import com.uade.tpo.repository.EstadisticaRepository;
+import com.uade.tpo.dto.EstadisticaCreateDTO;
 import com.uade.tpo.model.Estadistica;
+import com.uade.tpo.model.Partido;
+import com.uade.tpo.model.Usuario;
+import com.uade.tpo.repository.EstadisticaRepository;
+import com.uade.tpo.repository.PartidoRepository;
+import com.uade.tpo.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,20 +18,33 @@ public class EstadisticaService {
 
     @Autowired
     private EstadisticaRepository estadisticaRepository;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+    @Autowired
+    private PartidoRepository partidoRepository;
 
-    public List<Estadistica> findAll() {
-        return estadisticaRepository.findAll();
+    public Optional<Estadistica> crearEstadistica(EstadisticaCreateDTO dto) {
+        Optional<Usuario> usuario = usuarioRepository.findById(dto.getJugadorId());
+        Optional<Partido> partido = partidoRepository.findById(dto.getPartidoId());
+
+        if (usuario.isPresent() && partido.isPresent()) {
+            Estadistica estadistica = new Estadistica();
+            estadistica.setJugador(usuario.get());
+            estadistica.setPartido(partido.get());
+            estadistica.setAnotaciones(dto.getAnotaciones());
+            estadistica.setAsistencias(dto.getAsistencias());
+            estadistica.setAmonestaciones(dto.getAmonestaciones());
+            estadistica.setMejorJugador(dto.isMejorJugador());
+            return Optional.of(estadisticaRepository.save(estadistica));
+        }
+        return Optional.empty();
     }
 
-    public Optional<Estadistica> findById(Long id) {
-        return estadisticaRepository.findById(id);
+    public List<Estadistica> obtenerEstadisticasPorPartido(Long partidoId) {
+        return estadisticaRepository.findByPartidoId(partidoId);
     }
 
-    public Estadistica save(Estadistica estadistica) {
-        return estadisticaRepository.save(estadistica);
-    }
-
-    public void delete(Long id) {
+    public void eliminarEstadistica(Long id) {
         estadisticaRepository.deleteById(id);
     }
 }

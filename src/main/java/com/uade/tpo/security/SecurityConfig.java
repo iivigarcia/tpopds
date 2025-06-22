@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -25,6 +27,12 @@ public class SecurityConfig {
     private UsuarioRepository usuarioRepository;
 
     @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf().disable() // Para desarrollo, se recomienda activarlo en producción
@@ -39,16 +47,14 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> {
-            Usuario usuario = usuarioRepository.findByEmail(username);
-            if (usuario == null) {
-                throw new UsernameNotFoundException("Usuario no encontrado: " + username);
-            }
-            UserDetails user = User
-                    .withUsername(usuario.getEmail())
+            Usuario usuario = usuarioRepository.findByUsername(username)
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
+
+            return User
+                    .withUsername(usuario.getUsername())
                     .password(usuario.getPassword())
-                    .roles("USER") // Podés agregar roles dinámicos más adelante
+                    .roles("USER")
                     .build();
-            return user;
         };
     }
 
