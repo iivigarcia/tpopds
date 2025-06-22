@@ -12,9 +12,20 @@ public class Estadistica {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String descripcion;
+    @ManyToOne
+    @JoinColumn(name = "partido_id", nullable = false)
+    private Partido partido;
 
     @ManyToOne
-    @JoinColumn(name = "partido_id")
-    private Partido partido;
+    @JoinColumn(name = "jugador_id", nullable = false)
+    private Usuario jugador;
+
+    private int anotaciones;
+
+    private int asistencias;
+
+    private int amonestaciones;
+
+    @Column(name = "mejor_jugador")
+    private boolean mejorJugador;
 }
