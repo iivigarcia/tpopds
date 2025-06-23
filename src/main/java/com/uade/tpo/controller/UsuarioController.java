@@ -1,9 +1,6 @@
 package com.uade.tpo.controller;
 
-import com.uade.tpo.dto.AuthRequestDTO;
-import com.uade.tpo.dto.RegistroDTO;
-import com.uade.tpo.dto.UsuarioDTO;
-import com.uade.tpo.dto.UsuarioUpdateDTO;
+import com.uade.tpo.dto.*;
 import com.uade.tpo.model.Usuario;
 import com.uade.tpo.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +79,16 @@ public class UsuarioController {
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/deportes")
+    public ResponseEntity<?> asignarDeporteAUsuario(@RequestBody UsuarioDeporteDTO dto) {
+        try {
+            usuarioService.asignarDeporteAUsuario(dto);
+            return ResponseEntity.ok("Deporte asignado con éxito");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

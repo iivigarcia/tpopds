@@ -19,5 +19,6 @@ public interface UsuarioDeporteRepository extends JpaRepository<UsuarioDeporte, 
 
   Optional<UsuarioDeporte> findByUsuarioAndDeporteFavorito(Usuario usuario, boolean deporteFavorito);
 
+  Optional<UsuarioDeporte> findByUsuarioAndDeporte(Usuario usuario, Deporte deporte);
   List<UsuarioDeporte> findByUsuarioId(Long usuarioId);
 }

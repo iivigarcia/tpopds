@@ -37,7 +37,7 @@ public class SecurityConfig {
         http
                 .csrf().disable() // Para desarrollo, se recomienda activarlo en producción
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios/registro","/api/usuarios/login").permitAll()
                         .anyRequest().authenticated())
                 .httpBasic();
 

@@ -1,5 +1,6 @@
 package com.uade.tpo.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -21,7 +22,7 @@ public class Partido {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "deporte_id", nullable = false)
@@ -38,6 +39,12 @@ public class Partido {
 
     @Column(name = "cantidad_jugadores")
     private int cantidadJugadores;
+
+    @Column(name = "nivel_minimo")
+    private NivelJuego nivelMinimo;
+
+    @Column(name = "nivel_maximo")
+    private NivelJuego nivelMaximo;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "partidos_jugadores", joinColumns = @JoinColumn(name = "partido_id"), inverseJoinColumns = @JoinColumn(name = "usuario_id"))
@@ -60,6 +67,11 @@ public class Partido {
 
     @OneToMany(mappedBy = "partido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Estadistica> estadisticas;
+
+    @ManyToOne
+    @JoinColumn(name = "equipo_ganador_id")
+    @JsonIgnore
+    private Equipo ganador;
 
     public void setEstado(EstadoPartido nuevoEstado) {
         this.estado = nuevoEstado;

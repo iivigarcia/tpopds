@@ -2,7 +2,12 @@ package com.uade.tpo.service;
 
 import com.uade.tpo.dto.AuthRequestDTO;
 import com.uade.tpo.dto.RegistroDTO;
+import com.uade.tpo.dto.UsuarioDeporteDTO;
 import com.uade.tpo.dto.UsuarioUpdateDTO;
+import com.uade.tpo.model.Deporte;
+import com.uade.tpo.model.UsuarioDeporte;
+import com.uade.tpo.repository.DeporteRepository;
+import com.uade.tpo.repository.UsuarioDeporteRepository;
 import com.uade.tpo.repository.UsuarioRepository;
 import com.uade.tpo.model.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +26,12 @@ public class UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private DeporteRepository deporteRepository;
+
+    @Autowired
+    private UsuarioDeporteRepository usuarioDeporteRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -83,6 +94,22 @@ public class UsuarioService {
             return Optional.of(usuarioRepository.save(usuario));
         }
         return Optional.empty();
+    }
+
+    public void asignarDeporteAUsuario(UsuarioDeporteDTO dto) {
+        Usuario usuario = usuarioRepository.findByUsername(dto.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        Deporte deporte = deporteRepository.findByNombre(dto.getDeporte())
+                .orElseThrow(() -> new RuntimeException("Deporte no encontrado"));
+
+        UsuarioDeporte usuarioDeporte = new UsuarioDeporte();
+        usuarioDeporte.setUsuario(usuario);
+        usuarioDeporte.setDeporte(deporte);
+        usuarioDeporte.setNivelDeJuego(dto.getNivelDeJuego());
+        usuarioDeporte.setDeporteFavorito(dto.isDeporteFavorito());
+
+        usuarioDeporteRepository.save(usuarioDeporte);
     }
 
     public boolean eliminarUsuario(Long id) {
