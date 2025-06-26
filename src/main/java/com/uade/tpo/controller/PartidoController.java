@@ -231,11 +231,45 @@ public class PartidoController {
     public ResponseEntity<String> confirmarParticipacion(@PathVariable Long partidoId, @RequestParam Long usuarioId) {
         try {
             partidoService.confirmarParticipacion(partidoId, usuarioId);
+
+            Optional<Partido> partidoOpt = partidoService.obtenerPartidoPorId(partidoId);
+            if (partidoOpt.isPresent()) {
+                Partido partido = partidoOpt.get();
+                if (partido.getEstado() != null &&
+                        partido.getEstado().getClass().getSimpleName().equals("Confirmado")) {
+                    return ResponseEntity.ok("Participación confirmada correctamente. ¡El partido ha sido confirmado!");
+                }
+            }
+
             return ResponseEntity.ok("Participación confirmada correctamente");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error al confirmar participación: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/{partidoId}/confirmarTodosLosJugadores")
+    public ResponseEntity<String> confirmarTodosLosJugadores(@PathVariable Long partidoId) {
+        try {
+            partidoService.confirmarTodosLosJugadores(partidoId);
+
+            Optional<Partido> partidoOpt = partidoService.obtenerPartidoPorId(partidoId);
+            if (partidoOpt.isPresent()) {
+                Partido partido = partidoOpt.get();
+                if (partido.getEstado() != null &&
+                        partido.getEstado().getClass().getSimpleName().equals("Confirmado")) {
+                    return ResponseEntity
+                            .ok("Todos los jugadores han sido confirmados. ¡El partido ha sido confirmado!");
+                }
+            }
+
+            return ResponseEntity.ok("Todos los jugadores han sido confirmados correctamente");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Error al confirmar todos los jugadores: " + e.getMessage());
         }
     }
 

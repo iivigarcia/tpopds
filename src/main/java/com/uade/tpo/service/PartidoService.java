@@ -3,6 +3,7 @@ package com.uade.tpo.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -287,5 +288,51 @@ public class PartidoService {
 
         participacion.setConfirmado(true);
         equipoJugadorRepository.save(participacion);
+
+        int totalJugadoresConfirmados = partido.getEquipos().stream()
+                .mapToInt(equipo -> equipoJugadorRepository.findByEquipo(equipo).stream()
+                        .filter(EquipoJugador::isConfirmado)
+                        .mapToInt(ej -> 1)
+                        .sum())
+                .sum();
+
+        int totalJugadoresNecesarios = partido.getCantidadJugadores();
+
+        if (totalJugadoresConfirmados >= totalJugadoresNecesarios) {
+            partido.confirmar();
+            partidoRepository.save(partido);
+        }
+    }
+
+    public void confirmarTodosLosJugadores(Long partidoId) {
+        Partido partido = partidoRepository.findById(partidoId)
+                .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado"));
+
+        List<EquipoJugador> participaciones = partido.getEquipos().stream()
+                .flatMap(equipo -> equipoJugadorRepository.findByEquipo(equipo).stream())
+                .collect(Collectors.toList());
+
+        if (participaciones.isEmpty()) {
+            throw new IllegalArgumentException("El partido no tiene jugadores inscritos");
+        }
+
+        for (EquipoJugador participacion : participaciones) {
+            if (participacion.isInscrito() && !participacion.isConfirmado()) {
+                participacion.setConfirmado(true);
+                equipoJugadorRepository.save(participacion);
+            }
+        }
+
+        int totalJugadoresConfirmados = participaciones.stream()
+                .filter(EquipoJugador::isConfirmado)
+                .mapToInt(ej -> 1)
+                .sum();
+
+        int totalJugadoresNecesarios = partido.getCantidadJugadores();
+
+        if (totalJugadoresConfirmados >= totalJugadoresNecesarios) {
+            partido.confirmar();
+            partidoRepository.save(partido);
+        }
     }
 }
