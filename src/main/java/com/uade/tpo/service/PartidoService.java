@@ -335,4 +335,28 @@ public class PartidoService {
             partidoRepository.save(partido);
         }
     }
+
+    public void comenzarPartido(Long partidoId) {
+        Partido partido = partidoRepository.findById(partidoId)
+                .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado"));
+
+        if (partido.getEstado() == null ||
+                !partido.getEstado().getClass().getSimpleName().equals("Confirmado")) {
+            String estadoActual = partido.getEstado() != null ? partido.getEstado().getClass().getSimpleName()
+                    : "Sin estado";
+            throw new IllegalArgumentException(
+                    "El partido debe estar en estado 'Confirmado' para poder comenzar. Estado actual: " + estadoActual);
+        }
+
+        partido.comenzar();
+        partidoRepository.save(partido);
+    }
+
+    public void finalizarPartido(Long partidoId) {
+        Partido partido = partidoRepository.findById(partidoId)
+                .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado"));
+
+        partido.finalizar();
+        partidoRepository.save(partido);
+    }
 }

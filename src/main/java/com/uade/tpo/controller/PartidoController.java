@@ -273,4 +273,28 @@ public class PartidoController {
         }
     }
 
+    @PutMapping("/{partidoId}/comenzarPartido")
+    public ResponseEntity<String> comenzarPartido(@PathVariable Long partidoId) {
+        try {
+            partidoService.comenzarPartido(partidoId);
+            return ResponseEntity.ok("El partido ha comenzado correctamente");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error al comenzar el partido: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/{partidoId}/finalizarPartido")
+    public ResponseEntity<String> finalizarPartido(@PathVariable Long partidoId) {
+        try {
+            partidoService.finalizarPartido(partidoId);
+            return ResponseEntity.ok("El partido ha sido finalizado correctamente");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error al finalizar el partido: " + e.getMessage());
+        }
+    }
+
 }
