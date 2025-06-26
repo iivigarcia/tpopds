@@ -8,6 +8,7 @@ public class PartidoCreateDTO {
   private Long deporteId;
   private Date fecha;
   private String hora;
+  private Integer duracionHoras;
   private Integer ubicacionId;
   private Long organizadorId;
   private Integer cantidadJugadores;

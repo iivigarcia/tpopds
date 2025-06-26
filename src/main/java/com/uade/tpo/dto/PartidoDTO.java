@@ -13,6 +13,7 @@ public class PartidoDTO {
   private List<EquipoJugadorDTO> participaciones;
   private Date fecha;
   private String hora;
+  private Integer duracionHoras;
   private UsuarioDTO organizador;
   private Integer ubicacion;
   private String estadoPartido;

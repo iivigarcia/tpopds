@@ -102,6 +102,7 @@ public class PartidoController {
         dto.setDeporte(partido.getDeporte());
         dto.setFecha(partido.getFecha());
         dto.setHora(partido.getHora());
+        dto.setDuracionHoras(partido.getDuracionHoras());
         dto.setOrganizador(convertUsuarioToDto(partido.getOrganizador()));
         dto.setUbicacion(partido.getGeolocalizationId());
         dto.setEstadoPartido(partido.getEstado() != null ? partido.getEstado().getClass().getSimpleName() : null);

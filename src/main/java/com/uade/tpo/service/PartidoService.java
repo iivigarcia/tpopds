@@ -50,6 +50,9 @@ public class PartidoService {
         if (dto.getCantidadJugadores() % 2 != 0) {
             throw new RuntimeException("La cantidad de jugadores debe ser un número par");
         }
+        if (dto.getDuracionHoras() <= 0) {
+            throw new RuntimeException("La duración del partido debe ser mayor a 0 horas");
+        }
 
         Deporte deporte = deporteRepository.findById(dto.getDeporteId())
                 .orElseThrow(() -> new RuntimeException("Deporte no encontrado"));
@@ -65,6 +68,7 @@ public class PartidoService {
         partido.setDeporte(deporte);
         partido.setFecha(dto.getFecha());
         partido.setHora(dto.getHora());
+        partido.setDuracionHoras(dto.getDuracionHoras());
         partido.setGeolocalizationId(dto.getUbicacionId());
         partido.setOrganizador(organizador);
         partido.setCantidadJugadores(dto.getCantidadJugadores());

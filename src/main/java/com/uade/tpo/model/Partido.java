@@ -38,6 +38,9 @@ public class Partido {
     @Column(name = "hora", nullable = false)
     private String hora;
 
+    @Column(name = "duracion_horas", nullable = false)
+    private int duracionHoras;
+
     @Column(name = "geolocalization_id", nullable = false)
     private Integer geolocalizationId;
 
