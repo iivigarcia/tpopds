@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class UsuarioService {
@@ -41,19 +40,11 @@ public class UsuarioService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    public List<UsuarioDTO> obtenerUsuarios() {
-        return usuarioRepository.findAll().stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-    }
-
-    public Optional<UsuarioDTO> obtenerUsuarioPorId(Long id) {
-        return usuarioRepository.findById(id).map(this::convertToDto);
-    }
-
-    public Optional<UsuarioDTO> registrarUsuario(RegistroDTO registroDTO) {
-        if (usuarioRepository.findByEmail(registroDTO.getEmail()).isPresent()) {
-            return Optional.empty();
+    public Usuario registrarUsuario(RegistroDTO registroDTO) {
+        if (usuarioRepository.findByUsername(registroDTO.getUsername()).isPresent()
+                || usuarioRepository.findByEmail(registroDTO.getEmail()).isPresent()) {
+            // Aquí podrías lanzar una excepción más específica
+            throw new RuntimeException("El usuario o el email ya existen.");
         }
 
         Usuario usuario = new Usuario();
@@ -61,64 +52,49 @@ public class UsuarioService {
         usuario.setEmail(registroDTO.getEmail());
         usuario.setPassword(passwordEncoder.encode(registroDTO.getPassword()));
 
-        Usuario savedUsuario = usuarioRepository.save(usuario);
-        return Optional.of(convertToDto(savedUsuario));
+        return usuarioRepository.save(usuario);
     }
 
-    public Optional<String> autenticarUsuario(AuthRequestDTO authRequest) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
+    public String autenticarUsuario(AuthRequestDTO authRequest) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
 
-            if (authentication.isAuthenticated()) {
-                return Optional.of("token-ejemplo-jwt");
-            }
-        } catch (Exception e) {
-            return Optional.empty();
+        if (authentication.isAuthenticated()) {
+            // En una aplicación real, aquí generarías y devolverías un token JWT.
+            // Por ahora, devolvemos un token de ejemplo.
+            return "user_authenticated_successfully_token";
+        } else {
+            throw new UsernameNotFoundException("Solicitud de usuario inválida");
+        }
+    }
+
+    public List<Usuario> obtenerUsuarios() {
+        return usuarioRepository.findAll();
+    }
+
+    public Optional<Usuario> obtenerUsuarioPorId(Long id) {
+        return usuarioRepository.findById(id);
+    }
+
+    public Optional<Usuario> modificarUsuario(Long id, UsuarioUpdateDTO dto) {
+        Optional<Usuario> usuarioExistente = usuarioRepository.findById(id);
+        if (usuarioExistente.isPresent()) {
+            Usuario usuario = usuarioExistente.get();
+            // Validar que el nuevo username o email no estén ya en uso por OTRO usuario
+            usuarioRepository.findByUsername(dto.getUsername()).ifPresent(u -> {
+                if (!u.getId().equals(id))
+                    throw new RuntimeException("Username ya en uso");
+            });
+            usuarioRepository.findByEmail(dto.getEmail()).ifPresent(u -> {
+                if (!u.getId().equals(id))
+                    throw new RuntimeException("Email ya en uso");
+            });
+
+            usuario.setUsername(dto.getUsername());
+            usuario.setEmail(dto.getEmail());
+            return Optional.of(usuarioRepository.save(usuario));
         }
         return Optional.empty();
-    }
-
-    public Optional<UsuarioDTO> modificarUsuario(Long id, UsuarioUpdateDTO updateDTO) {
-        Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
-        if (usuarioOpt.isEmpty()) {
-            return Optional.empty();
-        }
-
-        Usuario usuario = usuarioOpt.get();
-
-        if (updateDTO.getUsername() != null && !updateDTO.getUsername().equals(usuario.getUsername())) {
-            if (usuarioRepository.findByUsername(updateDTO.getUsername()).isPresent()) {
-                return Optional.empty();
-            }
-            usuario.setUsername(updateDTO.getUsername());
-        }
-
-        if (updateDTO.getEmail() != null && !updateDTO.getEmail().equals(usuario.getEmail())) {
-            if (usuarioRepository.findByEmail(updateDTO.getEmail()).isPresent()) {
-                return Optional.empty();
-            }
-            usuario.setEmail(updateDTO.getEmail());
-        }
-
-        Usuario savedUsuario = usuarioRepository.save(usuario);
-        return Optional.of(convertToDto(savedUsuario));
-    }
-
-    public boolean eliminarUsuario(Long id) {
-        if (usuarioRepository.existsById(id)) {
-            usuarioRepository.deleteById(id);
-            return true;
-        }
-        return false;
-    }
-
-    private UsuarioDTO convertToDto(Usuario usuario) {
-        UsuarioDTO dto = new UsuarioDTO();
-        dto.setId(usuario.getId());
-        dto.setUsername(usuario.getUsername());
-        dto.setEmail(usuario.getEmail());
-        return dto;
     }
 
     public void asignarDeporteAUsuario(UsuarioDeporteDTO dto) {
@@ -135,5 +111,13 @@ public class UsuarioService {
         usuarioDeporte.setDeporteFavorito(dto.isDeporteFavorito());
 
         usuarioDeporteRepository.save(usuarioDeporte);
+    }
+
+    public boolean eliminarUsuario(Long id) {
+        if (usuarioRepository.existsById(id)) {
+            usuarioRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }
