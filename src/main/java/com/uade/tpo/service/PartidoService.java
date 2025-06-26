@@ -1,25 +1,21 @@
 package com.uade.tpo.service;
 
-import com.uade.tpo.dto.PartidoCreateDTO;
-import com.uade.tpo.model.Deporte;
-import com.uade.tpo.model.Equipo;
-import com.uade.tpo.model.Geolocalization;
-import com.uade.tpo.model.NivelJuego;
-import com.uade.tpo.model.Partido;
-import com.uade.tpo.model.Usuario;
-import com.uade.tpo.model.emparejamientoStrategy.EmparejamientoStrategy;
-import com.uade.tpo.repository.DeporteRepository;
-import com.uade.tpo.repository.EquipoRepository;
-import com.uade.tpo.repository.GeolocalizationRepository;
-import com.uade.tpo.repository.PartidoRepository;
-import com.uade.tpo.repository.UsuarioDeporteRepository;
-import com.uade.tpo.repository.UsuarioRepository;
+import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import com.uade.tpo.dto.PartidoCreateDTO;
+import com.uade.tpo.model.Deporte;
+import com.uade.tpo.model.NivelJuego;
+import com.uade.tpo.model.Partido;
+import com.uade.tpo.model.Usuario;
+import com.uade.tpo.repository.DeporteRepository;
+import com.uade.tpo.repository.EquipoRepository;
+import com.uade.tpo.repository.GeolocalizationRepository;
+import com.uade.tpo.repository.PartidoRepository;
+import com.uade.tpo.repository.UsuarioRepository;
 
 @Service
 public class PartidoService {
@@ -55,7 +51,6 @@ public class PartidoService {
         partido.setCantidadJugadores(dto.getCantidadJugadores());
         partido.setNivelMinimo(NivelJuego.valueOf(dto.getNivelMinimo()));
         partido.setNivelMaximo(NivelJuego.valueOf(dto.getNivelMaximo()));
-
         return Optional.of(partidoRepository.save(partido));
     }
 
@@ -95,5 +90,21 @@ public class PartidoService {
 
     public void eliminarPartido(Long id) {
         partidoRepository.deleteById(id);
+    }
+
+    public void setEstrategiaEmparejamiento(Long partidoId, String estrategia) {
+        Partido partido = partidoRepository.findById(partidoId)
+                .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado"));
+        switch (estrategia) {
+            case "EmparejarPorNivel" -> partido.setEstrategiaEmparejamiento(
+                    new com.uade.tpo.model.emparejamientoStrategy.EmparejarPorNivel());
+            case "EmparejarPorUbicacion" -> partido
+                    .setEstrategiaEmparejamiento(new com.uade.tpo.model.emparejamientoStrategy.EmparejarPorUbicacion());
+            case "EmparejarPorHistorial" -> partido
+                    .setEstrategiaEmparejamiento(
+                            new com.uade.tpo.model.emparejamientoStrategy.EmparejarPorHistorial());
+            default -> throw new IllegalArgumentException("Estrategia no válida: " + estrategia);
+        }
+        partidoRepository.save(partido);
     }
 }

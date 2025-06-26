@@ -10,12 +10,9 @@ import java.util.stream.Collectors;
 
 public class EmparejarPorNivel implements EmparejamientoStrategy {
 
-    private final UsuarioDeporteRepository usuarioDeporteRepository;
+    private UsuarioDeporteRepository usuarioDeporteRepository;
 
-    public EmparejarPorNivel(PartidoRepository partidoRepository, UsuarioDeporteRepository usuarioDeporteRepository,
-            UsuarioRepository usuarioRepository) {
-        this.usuarioDeporteRepository = usuarioDeporteRepository;
-
+    public EmparejarPorNivel() {
     }
 
     @Override

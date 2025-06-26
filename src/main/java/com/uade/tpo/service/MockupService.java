@@ -30,6 +30,9 @@ public class MockupService {
   @Autowired
   private PasswordEncoder passwordEncoder;
 
+  @Autowired
+  private PartidoRepository partidoRepository;
+
   public void inicializarDB() {
     crearUbicaciones();
     crearDeportes();
@@ -38,10 +41,10 @@ public class MockupService {
 
   public void limpiarDB() {
     usuarioDeporteRepository.deleteAll();
+    partidoRepository.deleteAll();
     usuarioRepository.deleteAll();
     deporteRepository.deleteAll();
     geolocalizationRepository.deleteAll();
-
     resetAutoIncrement();
   }
 

@@ -67,6 +67,13 @@ public class PartidoController {
         PartidoDTO dto = new PartidoDTO();
         dto.setId(partido.getId());
         dto.setFecha(partido.getFecha());
+        dto.setHora(partido.getHora());
+        dto.setOrganizador(convertUsuarioToDto(partido.getOrganizador()));
+        dto.setUbicacion(partido.getGeolocalizationId());
+        dto.setEstadoPartido(partido.getEstado() != null ? partido.getEstado().getClass().getSimpleName() : null);
+        dto.setEstrategiaEmparejamiento(partido.getEstrategiaEmparejamiento() != null
+                ? partido.getEstrategiaEmparejamiento().getClass().getSimpleName()
+                : null);
 
         if (partido.getEquipos() != null) {
             dto.setEquipos(
@@ -116,6 +123,18 @@ public class PartidoController {
     public ResponseEntity<Void> eliminarPartido(@PathVariable Long id) {
         partidoService.eliminarPartido(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/estrategia")
+    public ResponseEntity<String> setEstrategia(@PathVariable Long id, @RequestParam String estrategia) {
+        try {
+            partidoService.setEstrategiaEmparejamiento(id, estrategia);
+            return ResponseEntity.ok("Estrategia de emparejamiento actualizada correctamente");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error al actualizar la estrategia: " + e.getMessage());
+        }
     }
 
 }

@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.uade.tpo.model.emparejamientoStrategy.EmparejamientoStrategy;
 import com.uade.tpo.model.emparejamientoStrategy.EmparejamientoStrategyConverter;
+import com.uade.tpo.model.emparejamientoStrategy.EmparejarPorNivel;
 import com.uade.tpo.model.state.EstadoPartido;
 import com.uade.tpo.model.state.EstadoPartidoConverter;
 import com.uade.tpo.model.state.NecesitamosJugadores;
@@ -20,6 +21,7 @@ public class Partido {
 
     {
         this.estado = new NecesitamosJugadores();
+        this.estrategiaEmparejamiento = new EmparejarPorNivel();
     }
 
     @Id

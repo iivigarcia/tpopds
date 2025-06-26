@@ -9,10 +9,8 @@ import java.util.stream.Collectors;
 
 public class EmparejarPorHistorial implements EmparejamientoStrategy {
 
-    private final PartidoRepository partidoRepository;
+    public EmparejarPorHistorial() {
 
-    public EmparejarPorHistorial(PartidoRepository partidoRepository) {
-        this.partidoRepository = partidoRepository;
     }
 
     @Override

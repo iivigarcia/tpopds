@@ -19,7 +19,7 @@ public class EstadoPartidoConverter implements AttributeConverter<EstadoPartido,
       Class<?> clazz = Class.forName(dbData);
       return (EstadoPartido) clazz.getDeclaredConstructor().newInstance();
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException("Error converting state from database: " + dbData, e);
     }
   }
 }
