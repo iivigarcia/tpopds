@@ -53,7 +53,6 @@ public class EmparejarPorNivel implements EmparejamientoStrategy {
             }
         }
 
-        // Remove already assigned players and the organizer from eligible players
         jugadoresElegibles = jugadoresElegibles.stream()
                 .filter(jugador -> !jugadoresYaAsignados.contains(jugador) && !jugador.equals(organizador))
                 .collect(Collectors.toList());
