@@ -13,6 +13,7 @@ import com.uade.tpo.model.NivelJuego;
 import com.uade.tpo.model.Partido;
 import com.uade.tpo.model.Usuario;
 import com.uade.tpo.model.Equipo;
+import com.uade.tpo.model.UsuarioDeporte;
 import com.uade.tpo.repository.DeporteRepository;
 import com.uade.tpo.repository.EquipoRepository;
 import com.uade.tpo.repository.GeolocalizationRepository;
@@ -179,6 +180,76 @@ public class PartidoService {
         Partido partido = partidoRepository.findById(partidoId)
                 .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado"));
         partido.cancelar();
+        partidoRepository.save(partido);
+    }
+
+    public void inscribirUsuario(Long partidoId, Long usuarioId) {
+        Partido partido = partidoRepository.findById(partidoId)
+                .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado"));
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        // Validate that the partido is in NecesitamosJugadores state
+        if (partido.getEstado() == null ||
+                !partido.getEstado().getClass().getSimpleName().equals("NecesitamosJugadores")) {
+            String estadoActual = partido.getEstado() != null ? partido.getEstado().getClass().getSimpleName()
+                    : "Sin estado";
+            throw new IllegalArgumentException("No se puede inscribir al partido. Estado actual: " + estadoActual);
+        }
+
+        int totalJugadoresActuales = partido.getEquipos().stream()
+                .mapToInt(equipo -> equipo.getJugadores() != null ? equipo.getJugadores().size() : 0)
+                .sum();
+        if (totalJugadoresActuales >= partido.getCantidadJugadores()) {
+            throw new IllegalArgumentException("El partido ya alcanzó la cantidad máxima de jugadores");
+        }
+
+        boolean usuarioYaInscrito = partido.getEquipos().stream()
+                .anyMatch(equipo -> equipo.getJugadores() != null &&
+                        equipo.getJugadores().stream().anyMatch(jugador -> jugador.getId().equals(usuarioId)));
+        if (usuarioYaInscrito) {
+            throw new IllegalArgumentException("El usuario ya está inscrito en este partido");
+        }
+
+        UsuarioDeporte usuarioDeporte = usuarioDeporteRepository.findByUsuarioAndDeporte(usuario, partido.getDeporte())
+                .orElseThrow(() -> new IllegalArgumentException("El usuario no practica este deporte"));
+
+        NivelJuego nivelUsuario = usuarioDeporte.getNivelDeJuego();
+        if (nivelUsuario.ordinal() < partido.getNivelMinimo().ordinal() ||
+                nivelUsuario.ordinal() > partido.getNivelMaximo().ordinal()) {
+            throw new IllegalArgumentException("El nivel del usuario no cumple con los requisitos del partido");
+        }
+
+        List<Equipo> equipos = partido.getEquipos();
+        if (equipos == null || equipos.isEmpty()) {
+            throw new IllegalArgumentException("El partido no tiene equipos configurados");
+        }
+
+        Equipo equipoElegido = equipos.get(0);
+        int menorCantidad = equipoElegido.getJugadores() != null ? equipoElegido.getJugadores().size() : 0;
+
+        for (Equipo equipo : equipos) {
+            int cantidadJugadores = equipo.getJugadores() != null ? equipo.getJugadores().size() : 0;
+            if (cantidadJugadores < menorCantidad) {
+                equipoElegido = equipo;
+                menorCantidad = cantidadJugadores;
+            }
+        }
+
+        if (equipoElegido.getJugadores() == null) {
+            equipoElegido.setJugadores(new ArrayList<>());
+        }
+        equipoElegido.getJugadores().add(usuario);
+        equipoRepository.save(equipoElegido);
+
+        totalJugadoresActuales = partido.getEquipos().stream()
+                .mapToInt(equipo -> equipo.getJugadores() != null ? equipo.getJugadores().size() : 0)
+                .sum();
+
+        if (totalJugadoresActuales >= partido.getCantidadJugadores()) {
+            partido.armar();
+        }
+
         partidoRepository.save(partido);
     }
 }

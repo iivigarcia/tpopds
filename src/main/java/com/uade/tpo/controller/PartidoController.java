@@ -193,4 +193,16 @@ public class PartidoController {
         }
     }
 
+    @PostMapping("/{partidoId}/inscribirse")
+    public ResponseEntity<String> inscribirse(@PathVariable Long partidoId, @RequestParam Long usuarioId) {
+        try {
+            partidoService.inscribirUsuario(partidoId, usuarioId);
+            return ResponseEntity.ok("Usuario inscrito correctamente al partido");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error al inscribir usuario: " + e.getMessage());
+        }
+    }
+
 }
