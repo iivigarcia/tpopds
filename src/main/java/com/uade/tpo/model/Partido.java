@@ -16,7 +16,6 @@ import com.uade.tpo.model.state.NecesitamosJugadores;
 public class Partido {
 
     {
-        // Bloque de inicialización de instancia para establecer el estado inicial
         this.estado = new NecesitamosJugadores();
     }
 
@@ -34,8 +33,13 @@ public class Partido {
     @Column(name = "hora", nullable = false)
     private String hora;
 
-    @Column(name = "ubicacion", nullable = false)
-    private String ubicacion;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "geolocalization_id", nullable = false)
+    private Geolocalization ubicacion;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "organizador_id", nullable = false)
+    private Usuario organizador;
 
     @Column(name = "cantidad_jugadores")
     private int cantidadJugadores;
@@ -46,27 +50,19 @@ public class Partido {
     @Column(name = "nivel_maximo")
     private NivelJuego nivelMaximo;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "partidos_jugadores", joinColumns = @JoinColumn(name = "partido_id"), inverseJoinColumns = @JoinColumn(name = "usuario_id"))
-    private List<Usuario> jugadores;
-
     @Convert(converter = EstadoPartidoConverter.class)
     @Column(name = "estado")
     private EstadoPartido estado;
-
-    @ManyToOne
-    @JoinColumn(name = "equipo_local_id")
-    private Equipo equipoLocal;
-
-    @ManyToOne
-    @JoinColumn(name = "equipo_visitante_id")
-    private Equipo equipoVisitante;
 
     @OneToMany(mappedBy = "partido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comentario> comentarios;
 
     @OneToMany(mappedBy = "partido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Estadistica> estadisticas;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "partido_equipos", joinColumns = @JoinColumn(name = "partido_id"), inverseJoinColumns = @JoinColumn(name = "equipo_id"))
+    private List<Equipo> equipos;
 
     @ManyToOne
     @JoinColumn(name = "equipo_ganador_id")

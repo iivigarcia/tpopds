@@ -21,9 +21,12 @@ public class EmparejarPorNivel implements EmparejamientoStrategy {
 
     @Override
     public List<EmparejamientoResultado> emparejar(List<Usuario> usuarios) {
-        List<Partido> partidosAbiertos = partidoRepository.findAll().stream()
-                .filter(p -> p.getJugadores().size() < p.getCantidadJugadores())
-                .toList();
+        List<Partido> partidosAbiertos = partidoRepository.findAll();/*
+                                                                      * .stream()
+                                                                      * .filter(p -> p.getJugadores().size() <
+                                                                      * p.getCantidadJugadores())
+                                                                      * .toList();
+                                                                      */
 
         List<EmparejamientoResultado> emparejamientos = new ArrayList<>();
 
@@ -48,17 +51,20 @@ public class EmparejarPorNivel implements EmparejamientoStrategy {
                 Equipo equipoVisitante = new Equipo();
                 equipoVisitante.setJugadores(List.of(u2));
 
-                // Asignarlos al partido
-                partido.setEquipoLocal(equipoLocal);
-                partido.setEquipoVisitante(equipoVisitante);
-
-                // También agregarlos a la lista de jugadores del partido
-                partido.getJugadores().add(u1);
-                partido.getJugadores().add(u2);
+                /*
+                 * // Asignarlos al partido
+                 * partido.setEquipoLocal(equipoLocal);
+                 * partido.setEquipoVisitante(equipoVisitante);
+                 * 
+                 * // También agregarlos a la lista de jugadores del partido
+                 * partido.getJugadores().add(u1);
+                 * partido.getJugadores().add(u2);
+                 */
 
                 emparejamientos.add(new EmparejamientoResultado(equipoLocal, equipoVisitante));
 
-                break; // Emparejamos solo un par por partido, podés sacar este break si querés más de un emparejamiento por partido
+                break; // Emparejamos solo un par por partido, podés sacar este break si querés más de
+                       // un emparejamiento por partido
             }
 
             partidoRepository.save(partido);

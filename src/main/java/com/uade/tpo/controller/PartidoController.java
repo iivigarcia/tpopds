@@ -22,7 +22,6 @@ public class PartidoController {
     @Autowired
     private PartidoService partidoService;
 
-    // Helper para convertir Usuario a UsuarioDTO
     private UsuarioDTO convertUsuarioToDto(com.uade.tpo.model.Usuario usuario) {
         if (usuario == null)
             return null;
@@ -33,18 +32,15 @@ public class PartidoController {
         return dto;
     }
 
-    // Helper para convertir Equipo a EquipoDTO
     private EquipoDTO convertEquipoToDto(com.uade.tpo.model.Equipo equipo) {
         if (equipo == null)
             return null;
         EquipoDTO dto = new EquipoDTO();
         dto.setId(equipo.getId());
         dto.setNombre(equipo.getNombre());
-        // No poblamos la lista de jugadores aquí para evitar cargas pesadas/circulares
         return dto;
     }
 
-    // Helper para convertir Comentario a ComentarioDTO
     private ComentarioDTO convertComentarioToDto(Comentario comentario) {
         ComentarioDTO dto = new ComentarioDTO();
         dto.setId(comentario.getId());
@@ -55,7 +51,6 @@ public class PartidoController {
         return dto;
     }
 
-    // Helper para convertir Estadistica a EstadisticaDTO
     private EstadisticaDTO convertEstadisticaToDto(Estadistica estadistica) {
         EstadisticaDTO dto = new EstadisticaDTO();
         dto.setId(estadistica.getId());
@@ -72,8 +67,11 @@ public class PartidoController {
         PartidoDTO dto = new PartidoDTO();
         dto.setId(partido.getId());
         dto.setFecha(partido.getFecha());
-        dto.setEquipoLocal(convertEquipoToDto(partido.getEquipoLocal()));
-        dto.setEquipoVisitante(convertEquipoToDto(partido.getEquipoVisitante()));
+
+        if (partido.getEquipos() != null) {
+            dto.setEquipos(
+                    partido.getEquipos().stream().map(this::convertEquipoToDto).collect(Collectors.toList()));
+        }
 
         if (partido.getComentarios() != null) {
             dto.setComentarios(
@@ -113,17 +111,22 @@ public class PartidoController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/emparejamiento/estrategia")
-    public ResponseEntity<String> seleccionarEstrategia(@RequestParam String tipo) {
-        boolean ok = partidoService.seleccionarEstrategia(tipo);
-        if (ok) return ResponseEntity.ok("Estrategia seleccionada: " + tipo);
-        return ResponseEntity.badRequest().body("Estrategia inválida: " + tipo);
-    }
-
-    @PostMapping("/emparejamiento/ejecutar")
-    public ResponseEntity<List<EmparejamientoResultado>> ejecutarEmparejamiento() {
-        List<EmparejamientoResultado> resultados = partidoService.emparejar();
-        return ResponseEntity.ok(resultados);
-    }
+    /*
+     * @PostMapping("/emparejamiento/estrategia")
+     * public ResponseEntity<String> seleccionarEstrategia(@RequestParam String
+     * tipo) {
+     * boolean ok = partidoService.seleccionarEstrategia(tipo);
+     * if (ok)
+     * return ResponseEntity.ok("Estrategia seleccionada: " + tipo);
+     * return ResponseEntity.badRequest().body("Estrategia inválida: " + tipo);
+     * }
+     * 
+     * @PostMapping("/emparejamiento/ejecutar")
+     * public ResponseEntity<List<EmparejamientoResultado>> ejecutarEmparejamiento()
+     * {
+     * List<EmparejamientoResultado> resultados = partidoService.emparejar();
+     * return ResponseEntity.ok(resultados);
+     * }
+     */
 
 }

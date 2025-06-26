@@ -7,8 +7,7 @@ import java.util.List;
 @Data
 public class PartidoDTO {
   private Long id;
-  private EquipoDTO equipoLocal;
-  private EquipoDTO equipoVisitante;
+  private List<EquipoDTO> equipos;
   private Date fecha;
   private List<ComentarioDTO> comentarios;
   private List<EstadisticaDTO> estadisticas;

@@ -6,7 +6,9 @@ public class PartidoArmado implements EstadoPartido {
 
   @Override
   public void crear(Partido contexto) {
-    contexto.getJugadores().clear();
+    if (contexto.getEquipos() != null) {
+      contexto.getEquipos().clear();
+    }
     contexto.setEstado(new NecesitamosJugadores());
   }
 

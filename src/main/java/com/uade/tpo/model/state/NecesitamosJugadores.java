@@ -6,17 +6,19 @@ public class NecesitamosJugadores implements EstadoPartido {
 
   @Override
   public void armar(Partido contexto) {
-    if (contexto.getJugadores().size() == contexto.getCantidadJugadores()) {
+    if (contexto.getEquipos() != null && contexto.getEquipos().size() >= 2) {
       contexto.setEstado(new PartidoArmado());
     } else {
-      throw new IllegalStateException("No hay suficientes jugadores para armar el partido.");
+      throw new IllegalStateException(
+          "No hay suficientes equipos para armar el partido. Se necesitan al menos 2 equipos.");
     }
   }
 
   @Override
   public void crear(Partido contexto) {
-    // Esta acción reinicia el partido, vaciando la lista de jugadores.
-    contexto.getJugadores().clear();
+    if (contexto.getEquipos() != null) {
+      contexto.getEquipos().clear();
+    }
     contexto.setEstado(new NecesitamosJugadores());
   }
 

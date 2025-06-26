@@ -3,29 +3,23 @@ package com.uade.tpo.model.state;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
-@Converter
+@Converter(autoApply = true)
 public class EstadoPartidoConverter implements AttributeConverter<EstadoPartido, String> {
 
   @Override
-  public String convertToDatabaseColumn(EstadoPartido attribute) {
-    if (attribute == null) {
-      return null;
-    }
-    return attribute.getClass().getSimpleName();
+  public String convertToDatabaseColumn(EstadoPartido estado) {
+    return estado != null ? estado.getClass().getName() : null;
   }
 
   @Override
   public EstadoPartido convertToEntityAttribute(String dbData) {
-    if (dbData == null) {
+    if (dbData == null)
       return null;
-    }
     try {
-      // Asumimos que las clases de estado están en este paquete.
-      Class<?> clazz = Class.forName("com.uade.tpo.model.state." + dbData);
+      Class<?> clazz = Class.forName(dbData);
       return (EstadoPartido) clazz.getDeclaredConstructor().newInstance();
     } catch (Exception e) {
-      // Manejar la excepción apropiadamente
-      throw new IllegalArgumentException("Valor de estado desconocido: " + dbData, e);
+      throw new RuntimeException(e);
     }
   }
 }
