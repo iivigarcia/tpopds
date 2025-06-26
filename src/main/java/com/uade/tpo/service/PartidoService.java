@@ -174,6 +174,13 @@ public class PartidoService {
             ubicacionStrategy.setUsuarioDeporteRepository(usuarioDeporteRepository);
             ubicacionStrategy.setEquipoRepository(equipoRepository);
         }
+        if (partido
+                .getEstrategiaEmparejamiento() instanceof com.uade.tpo.model.emparejamientoStrategy.EmparejarPorHistorial historialStrategy) {
+            historialStrategy.setUsuarioDeporteRepository(usuarioDeporteRepository);
+            historialStrategy.setEquipoRepository(equipoRepository);
+            historialStrategy.setPartidoRepository(partidoRepository);
+            historialStrategy.setEquipoJugadorRepository(equipoJugadorRepository);
+        }
         partido.getEstrategiaEmparejamiento().emparejar(partido);
 
         int totalJugadoresNecesarios = partido.getCantidadJugadores();
