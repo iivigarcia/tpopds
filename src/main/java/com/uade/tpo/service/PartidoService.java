@@ -37,6 +37,14 @@ public class PartidoService {
     private UsuarioDeporteRepository usuarioDeporteRepository;
 
     public Optional<Partido> crearPartido(PartidoCreateDTO dto) {
+        // Validate cantidadJugadores is even and greater than 0
+        if (dto.getCantidadJugadores() <= 0) {
+            throw new RuntimeException("La cantidad de jugadores debe ser mayor a 0");
+        }
+        if (dto.getCantidadJugadores() % 2 != 0) {
+            throw new RuntimeException("La cantidad de jugadores debe ser un número par");
+        }
+
         Deporte deporte = deporteRepository.findById(dto.getDeporteId())
                 .orElseThrow(() -> new RuntimeException("Deporte no encontrado"));
 
@@ -151,6 +159,26 @@ public class PartidoService {
             nivelStrategy.setEquipoRepository(equipoRepository);
         }
         partido.getEstrategiaEmparejamiento().emparejar(partido);
+
+        // Validate if the required number of players has been reached
+        int totalJugadoresNecesarios = partido.getCantidadJugadores();
+        int totalJugadoresActuales = partido.getEquipos().stream()
+                .mapToInt(equipo -> equipo.getJugadores() != null ? equipo.getJugadores().size() : 0)
+                .sum();
+
+        // If we have reached the required number of players, change state to
+        // PartidoArmado
+        if (totalJugadoresActuales >= totalJugadoresNecesarios) {
+            partido.armar();
+        }
+
+        partidoRepository.save(partido);
+    }
+
+    public void cancelarPartido(Long partidoId) {
+        Partido partido = partidoRepository.findById(partidoId)
+                .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado"));
+        partido.cancelar();
         partidoRepository.save(partido);
     }
 }

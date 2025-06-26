@@ -160,12 +160,36 @@ public class PartidoController {
     @PostMapping("/{id}/emparejar")
     public ResponseEntity<String> emparejarPartido(@PathVariable Long id) {
         try {
+            Optional<Partido> partidoOpt = partidoService.obtenerPartidoPorId(id);
+            if (partidoOpt.isEmpty()) {
+                return ResponseEntity.badRequest().body("Partido no encontrado");
+            }
+
+            Partido partido = partidoOpt.get();
+            if (partido.getEstado() == null ||
+                    !partido.getEstado().getClass().getSimpleName().equals("NecesitamosJugadores")) {
+                return ResponseEntity.badRequest()
+                        .body("El partido debe estar en estado 'NecesitamosJugadores' para poder emparejar");
+            }
+
             partidoService.emparejarPartido(id);
             return ResponseEntity.ok("Emparejamiento ejecutado correctamente");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error al emparejar el partido: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}/cancelar")
+    public ResponseEntity<String> cancelarPartido(@PathVariable Long id) {
+        try {
+            partidoService.cancelarPartido(id);
+            return ResponseEntity.ok("Partido cancelado correctamente");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error al cancelar el partido: " + e.getMessage());
         }
     }
 
