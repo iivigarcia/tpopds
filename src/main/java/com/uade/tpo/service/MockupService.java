@@ -3,6 +3,8 @@ package com.uade.tpo.service;
 import com.uade.tpo.model.*;
 import com.uade.tpo.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -22,6 +24,12 @@ public class MockupService {
   @Autowired
   private UsuarioDeporteRepository usuarioDeporteRepository;
 
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
+
+  @Autowired
+  private PasswordEncoder passwordEncoder;
+
   public void inicializarDB() {
     crearUbicaciones();
     crearDeportes();
@@ -33,6 +41,18 @@ public class MockupService {
     usuarioRepository.deleteAll();
     deporteRepository.deleteAll();
     geolocalizationRepository.deleteAll();
+
+    resetAutoIncrement();
+  }
+
+  private void resetAutoIncrement() {
+    jdbcTemplate.execute("ALTER TABLE estadisticas AUTO_INCREMENT = 1");
+    jdbcTemplate.execute("ALTER TABLE comentarios AUTO_INCREMENT = 1");
+    jdbcTemplate.execute("ALTER TABLE partidos AUTO_INCREMENT = 1");
+    jdbcTemplate.execute("ALTER TABLE equipos AUTO_INCREMENT = 1");
+    jdbcTemplate.execute("ALTER TABLE usuarios AUTO_INCREMENT = 1");
+    jdbcTemplate.execute("ALTER TABLE deportes AUTO_INCREMENT = 1");
+    jdbcTemplate.execute("ALTER TABLE geolocalizations AUTO_INCREMENT = 1");
   }
 
   private void crearUbicaciones() {
@@ -103,7 +123,7 @@ public class MockupService {
       Usuario usuario = new Usuario();
       usuario.setUsername(username);
       usuario.setEmail(username.toLowerCase() + "@email.com");
-      usuario.setPassword("password123");
+      usuario.setPassword(passwordEncoder.encode("password123"));
 
       if (i <= 20) {
         usuario.setUbicacion(ubicacionComun);

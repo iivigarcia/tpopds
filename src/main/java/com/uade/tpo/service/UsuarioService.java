@@ -6,8 +6,10 @@ import com.uade.tpo.dto.UsuarioDTO;
 import com.uade.tpo.dto.UsuarioDeporteDTO;
 import com.uade.tpo.dto.UsuarioUpdateDTO;
 import com.uade.tpo.model.Deporte;
+import com.uade.tpo.model.Geolocalization;
 import com.uade.tpo.model.UsuarioDeporte;
 import com.uade.tpo.repository.DeporteRepository;
+import com.uade.tpo.repository.GeolocalizationRepository;
 import com.uade.tpo.repository.UsuarioDeporteRepository;
 import com.uade.tpo.repository.UsuarioRepository;
 import com.uade.tpo.model.Usuario;
@@ -35,22 +37,33 @@ public class UsuarioService {
     private UsuarioDeporteRepository usuarioDeporteRepository;
 
     @Autowired
+    private GeolocalizationRepository geolocalizationRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
     private AuthenticationManager authenticationManager;
 
     public Usuario registrarUsuario(RegistroDTO registroDTO) {
-        if (usuarioRepository.findByUsername(registroDTO.getUsername()).isPresent()
-                || usuarioRepository.findByEmail(registroDTO.getEmail()).isPresent()) {
-            // Aquí podrías lanzar una excepción más específica
-            throw new RuntimeException("El usuario o el email ya existen.");
+        // Validar que username y email no existan
+        if (usuarioRepository.findByUsername(registroDTO.getUsername()).isPresent()) {
+            throw new RuntimeException("El username ya existe.");
         }
+
+        if (usuarioRepository.findByEmail(registroDTO.getEmail()).isPresent()) {
+            throw new RuntimeException("El email ya existe.");
+        }
+
+        // Validar que la ubicación existe
+        Geolocalization ubicacion = geolocalizationRepository.findById(registroDTO.getUbicacionId())
+                .orElseThrow(() -> new RuntimeException("La ubicación especificada no existe."));
 
         Usuario usuario = new Usuario();
         usuario.setUsername(registroDTO.getUsername());
         usuario.setEmail(registroDTO.getEmail());
         usuario.setPassword(passwordEncoder.encode(registroDTO.getPassword()));
+        usuario.setUbicacion(ubicacion);
 
         return usuarioRepository.save(usuario);
     }
