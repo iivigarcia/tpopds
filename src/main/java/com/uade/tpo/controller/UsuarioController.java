@@ -2,7 +2,9 @@ package com.uade.tpo.controller;
 
 import com.uade.tpo.dto.*;
 import com.uade.tpo.model.Usuario;
+import com.uade.tpo.model.Geolocalization;
 import com.uade.tpo.service.UsuarioService;
+import com.uade.tpo.repository.GeolocalizationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +21,19 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
+    @Autowired
+    private GeolocalizationRepository geolocalizationRepository;
+
     private UsuarioDTO convertToDto(Usuario usuario) {
         UsuarioDTO dto = new UsuarioDTO();
         dto.setId(usuario.getId());
         dto.setUsername(usuario.getUsername());
         dto.setEmail(usuario.getEmail());
+
+        // Fetch and set the ubicacion
+        Optional<Geolocalization> ubicacion = geolocalizationRepository.findById(usuario.getGeolocalizationId());
+        dto.setUbicacion(ubicacion.orElse(null));
+
         return dto;
     }
 

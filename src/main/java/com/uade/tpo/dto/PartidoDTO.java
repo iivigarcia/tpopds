@@ -1,5 +1,6 @@
 package com.uade.tpo.dto;
 
+import com.uade.tpo.model.Deporte;
 import lombok.Data;
 import java.util.Date;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.List;
 @Data
 public class PartidoDTO {
   private Long id;
+  private Deporte deporte;
   private List<EquipoDTO> equipos;
   private Date fecha;
   private String hora;

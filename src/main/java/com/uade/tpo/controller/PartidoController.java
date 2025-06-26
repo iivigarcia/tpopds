@@ -4,6 +4,9 @@ import com.uade.tpo.dto.*;
 import com.uade.tpo.model.Comentario;
 import com.uade.tpo.model.Estadistica;
 import com.uade.tpo.model.Partido;
+import com.uade.tpo.model.Usuario;
+import com.uade.tpo.model.Geolocalization;
+import com.uade.tpo.repository.GeolocalizationRepository;
 import com.uade.tpo.service.PartidoService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,13 +25,21 @@ public class PartidoController {
     @Autowired
     private PartidoService partidoService;
 
-    private UsuarioDTO convertUsuarioToDto(com.uade.tpo.model.Usuario usuario) {
+    @Autowired
+    private GeolocalizationRepository geolocalizationRepository;
+
+    private UsuarioDTO convertUsuarioToDto(Usuario usuario) {
         if (usuario == null)
             return null;
         UsuarioDTO dto = new UsuarioDTO();
         dto.setId(usuario.getId());
         dto.setUsername(usuario.getUsername());
         dto.setEmail(usuario.getEmail());
+
+        // Fetch and set the ubicacion
+        Optional<Geolocalization> ubicacion = geolocalizationRepository.findById(usuario.getGeolocalizationId());
+        dto.setUbicacion(ubicacion.orElse(null));
+
         return dto;
     }
 
@@ -38,6 +49,14 @@ public class PartidoController {
         EquipoDTO dto = new EquipoDTO();
         dto.setId(equipo.getId());
         dto.setNombre(equipo.getNombre());
+
+        // Convert and set the jugadores
+        if (equipo.getJugadores() != null) {
+            dto.setJugadores(equipo.getJugadores().stream()
+                    .map(this::convertUsuarioToDto)
+                    .collect(Collectors.toList()));
+        }
+
         return dto;
     }
 
@@ -66,6 +85,7 @@ public class PartidoController {
     private PartidoDTO convertToDto(Partido partido) {
         PartidoDTO dto = new PartidoDTO();
         dto.setId(partido.getId());
+        dto.setDeporte(partido.getDeporte());
         dto.setFecha(partido.getFecha());
         dto.setHora(partido.getHora());
         dto.setOrganizador(convertUsuarioToDto(partido.getOrganizador()));
@@ -134,6 +154,18 @@ public class PartidoController {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error al actualizar la estrategia: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/emparejar")
+    public ResponseEntity<String> emparejarPartido(@PathVariable Long id) {
+        try {
+            partidoService.emparejarPartido(id);
+            return ResponseEntity.ok("Emparejamiento ejecutado correctamente");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error al emparejar el partido: " + e.getMessage());
         }
     }
 

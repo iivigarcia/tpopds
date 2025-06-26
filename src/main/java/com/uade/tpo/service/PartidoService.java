@@ -2,6 +2,7 @@ package com.uade.tpo.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,11 +12,13 @@ import com.uade.tpo.model.Deporte;
 import com.uade.tpo.model.NivelJuego;
 import com.uade.tpo.model.Partido;
 import com.uade.tpo.model.Usuario;
+import com.uade.tpo.model.Equipo;
 import com.uade.tpo.repository.DeporteRepository;
 import com.uade.tpo.repository.EquipoRepository;
 import com.uade.tpo.repository.GeolocalizationRepository;
 import com.uade.tpo.repository.PartidoRepository;
 import com.uade.tpo.repository.UsuarioRepository;
+import com.uade.tpo.repository.UsuarioDeporteRepository;
 
 @Service
 public class PartidoService {
@@ -30,6 +33,8 @@ public class PartidoService {
     private DeporteRepository deporteRepository;
     @Autowired
     private UsuarioRepository usuarioRepository;
+    @Autowired
+    private UsuarioDeporteRepository usuarioDeporteRepository;
 
     public Optional<Partido> crearPartido(PartidoCreateDTO dto) {
         Deporte deporte = deporteRepository.findById(dto.getDeporteId())
@@ -51,7 +56,33 @@ public class PartidoService {
         partido.setCantidadJugadores(dto.getCantidadJugadores());
         partido.setNivelMinimo(NivelJuego.valueOf(dto.getNivelMinimo()));
         partido.setNivelMaximo(NivelJuego.valueOf(dto.getNivelMaximo()));
-        return Optional.of(partidoRepository.save(partido));
+
+        // Save the partido first
+        partido = partidoRepository.save(partido);
+
+        // Create empty teams and add organizer to first team
+        List<Equipo> equipos = new ArrayList<>();
+
+        // Create first team and add organizer
+        Equipo equipo1 = new Equipo();
+        equipo1.setNombre("Equipo 1");
+        equipo1.setJugadores(new ArrayList<>());
+        equipo1.getJugadores().add(organizador);
+        equipo1 = equipoRepository.save(equipo1);
+        equipos.add(equipo1);
+
+        // Create second team (empty)
+        Equipo equipo2 = new Equipo();
+        equipo2.setNombre("Equipo 2");
+        equipo2.setJugadores(new ArrayList<>());
+        equipo2 = equipoRepository.save(equipo2);
+        equipos.add(equipo2);
+
+        // Set teams to partido and save
+        partido.setEquipos(equipos);
+        partido = partidoRepository.save(partido);
+
+        return Optional.of(partido);
     }
 
     public List<Partido> obtenerPartidos() {
@@ -105,6 +136,21 @@ public class PartidoService {
                             new com.uade.tpo.model.emparejamientoStrategy.EmparejarPorHistorial());
             default -> throw new IllegalArgumentException("Estrategia no válida: " + estrategia);
         }
+        partidoRepository.save(partido);
+    }
+
+    public void emparejarPartido(Long partidoId) {
+        Partido partido = partidoRepository.findById(partidoId)
+                .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado"));
+        if (partido.getEstrategiaEmparejamiento() == null) {
+            throw new IllegalArgumentException("El partido no tiene una estrategia de emparejamiento seteada");
+        }
+        if (partido
+                .getEstrategiaEmparejamiento() instanceof com.uade.tpo.model.emparejamientoStrategy.EmparejarPorNivel nivelStrategy) {
+            nivelStrategy.setUsuarioDeporteRepository(usuarioDeporteRepository);
+            nivelStrategy.setEquipoRepository(equipoRepository);
+        }
+        partido.getEstrategiaEmparejamiento().emparejar(partido);
         partidoRepository.save(partido);
     }
 }

@@ -74,8 +74,6 @@ public class UsuarioService {
                 new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
 
         if (authentication.isAuthenticated()) {
-            // En una aplicación real, aquí generarías y devolverías un token JWT.
-            // Por ahora, devolvemos un token de ejemplo.
             return "user_authenticated_successfully_token";
         } else {
             throw new UsernameNotFoundException("Solicitud de usuario inválida");

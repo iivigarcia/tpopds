@@ -25,13 +25,22 @@ public class MockupService {
   private UsuarioDeporteRepository usuarioDeporteRepository;
 
   @Autowired
+  private PartidoRepository partidoRepository;
+
+  @Autowired
+  private EquipoRepository equipoRepository;
+
+  @Autowired
+  private ComentarioRepository comentarioRepository;
+
+  @Autowired
+  private EstadisticaRepository estadisticaRepository;
+
+  @Autowired
   private JdbcTemplate jdbcTemplate;
 
   @Autowired
   private PasswordEncoder passwordEncoder;
-
-  @Autowired
-  private PartidoRepository partidoRepository;
 
   public void inicializarDB() {
     crearUbicaciones();
@@ -40,8 +49,11 @@ public class MockupService {
   }
 
   public void limpiarDB() {
+    estadisticaRepository.deleteAll();
+    comentarioRepository.deleteAll();
     usuarioDeporteRepository.deleteAll();
     partidoRepository.deleteAll();
+    equipoRepository.deleteAll();
     usuarioRepository.deleteAll();
     deporteRepository.deleteAll();
     geolocalizationRepository.deleteAll();

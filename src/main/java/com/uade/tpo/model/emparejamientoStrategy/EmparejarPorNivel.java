@@ -1,16 +1,25 @@
 package com.uade.tpo.model.emparejamientoStrategy;
 
-import com.uade.tpo.model.*;
-import com.uade.tpo.repository.PartidoRepository;
-import com.uade.tpo.repository.UsuarioDeporteRepository;
-import com.uade.tpo.repository.UsuarioRepository;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.uade.tpo.model.Deporte;
+import com.uade.tpo.model.Equipo;
+import com.uade.tpo.model.NivelJuego;
+import com.uade.tpo.model.Partido;
+import com.uade.tpo.model.Usuario;
+import com.uade.tpo.model.UsuarioDeporte;
+import com.uade.tpo.repository.EquipoRepository;
+import com.uade.tpo.repository.UsuarioDeporteRepository;
 
 public class EmparejarPorNivel implements EmparejamientoStrategy {
 
     private UsuarioDeporteRepository usuarioDeporteRepository;
+    private EquipoRepository equipoRepository;
 
     public EmparejarPorNivel() {
     }
@@ -44,15 +53,12 @@ public class EmparejarPorNivel implements EmparejamientoStrategy {
             }
         }
 
+        // Remove already assigned players and the organizer from eligible players
         jugadoresElegibles = jugadoresElegibles.stream()
-                .filter(jugador -> !jugadoresYaAsignados.contains(jugador))
+                .filter(jugador -> !jugadoresYaAsignados.contains(jugador) && !jugador.equals(organizador))
                 .collect(Collectors.toList());
 
-        if (organizador != null && !jugadoresYaAsignados.contains(organizador)) {
-            jugadoresElegibles.add(organizador);
-        }
-
-        if (jugadoresElegibles.isEmpty()) {
+        if (jugadoresElegibles.isEmpty() && organizador == null) {
             return;
         }
 
@@ -68,12 +74,25 @@ public class EmparejarPorNivel implements EmparejamientoStrategy {
                 Equipo equipo = new Equipo();
                 equipo.setNombre("Equipo " + (i + 1));
                 equipo.setJugadores(new ArrayList<>());
+                equipo = equipoRepository.save(equipo);
                 equipos.add(equipo);
             }
         }
 
-        int jugadorIndex = 0;
+        // Always add organizer to the first team if not already assigned
+        if (organizador != null && !jugadoresYaAsignados.contains(organizador)) {
+            Equipo primerEquipo = equipos.get(0);
+            List<Usuario> jugadoresPrimerEquipo = primerEquipo.getJugadores();
+            if (jugadoresPrimerEquipo == null) {
+                jugadoresPrimerEquipo = new ArrayList<>();
+                primerEquipo.setJugadores(jugadoresPrimerEquipo);
+            }
+            jugadoresPrimerEquipo.add(organizador);
+            equipoRepository.save(primerEquipo);
+        }
 
+        // Distribute remaining players
+        int jugadorIndex = 0;
         for (Equipo equipo : equipos) {
             if (jugadorIndex >= jugadoresElegibles.size()) {
                 break;
@@ -89,20 +108,21 @@ public class EmparejarPorNivel implements EmparejamientoStrategy {
 
             for (int i = 0; i < jugadoresNecesarios && jugadorIndex < jugadoresElegibles.size(); i++) {
                 Usuario jugador = jugadoresElegibles.get(jugadorIndex);
-
-                if (organizador != null && jugador.equals(organizador) && equipos.indexOf(equipo) == 0) {
-                    jugadoresEquipo.add(jugador);
-                    jugadorIndex++;
-                } else if (organizador == null || !jugador.equals(organizador)) {
-                    jugadoresEquipo.add(jugador);
-                    jugadorIndex++;
-                } else {
-                    jugadorIndex++;
-                    i--;
-                }
+                jugadoresEquipo.add(jugador);
+                jugadorIndex++;
             }
+
+            equipoRepository.save(equipo);
         }
 
         partido.setEquipos(equipos);
+    }
+
+    public void setUsuarioDeporteRepository(UsuarioDeporteRepository usuarioDeporteRepository) {
+        this.usuarioDeporteRepository = usuarioDeporteRepository;
+    }
+
+    public void setEquipoRepository(EquipoRepository equipoRepository) {
+        this.equipoRepository = equipoRepository;
     }
 }
