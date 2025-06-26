@@ -10,15 +10,22 @@ import com.uade.tpo.model.EquipoJugador;
 import com.uade.tpo.repository.GeolocalizationRepository;
 import com.uade.tpo.repository.EquipoJugadorRepository;
 import com.uade.tpo.service.PartidoService;
+import com.uade.tpo.service.PartidoCronService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/api/partidos")
@@ -32,6 +39,9 @@ public class PartidoController {
 
     @Autowired
     private EquipoJugadorRepository equipoJugadorRepository;
+
+    @Autowired
+    private PartidoCronService partidoCronService;
 
     private UsuarioDTO convertUsuarioToDto(Usuario usuario) {
         if (usuario == null)
@@ -102,7 +112,7 @@ public class PartidoController {
         dto.setDeporte(partido.getDeporte());
         dto.setFecha(partido.getFecha());
         dto.setHora(partido.getHora());
-        dto.setDuracionHoras(partido.getDuracionHoras());
+        dto.setDuracionMinutos(partido.getDuracionMinutos());
         dto.setOrganizador(convertUsuarioToDto(partido.getOrganizador()));
         dto.setUbicacion(partido.getGeolocalizationId());
         dto.setEstadoPartido(partido.getEstado() != null ? partido.getEstado().getClass().getSimpleName() : null);
@@ -290,11 +300,21 @@ public class PartidoController {
     public ResponseEntity<String> finalizarPartido(@PathVariable Long partidoId) {
         try {
             partidoService.finalizarPartido(partidoId);
-            return ResponseEntity.ok("El partido ha sido finalizado correctamente");
+            return ResponseEntity.ok("Partido finalizado correctamente");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error al finalizar el partido: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/cron/ejecutar")
+    public ResponseEntity<String> ejecutarCronManual() {
+        try {
+            partidoCronService.procesarEstadosPartidos();
+            return ResponseEntity.ok("Cron job ejecutado manualmente correctamente");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error al ejecutar el cron job: " + e.getMessage());
         }
     }
 

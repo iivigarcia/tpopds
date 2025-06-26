@@ -2,7 +2,7 @@ package com.uade.tpo.dto;
 
 import com.uade.tpo.model.Deporte;
 import lombok.Data;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -11,9 +11,9 @@ public class PartidoDTO {
   private Deporte deporte;
   private List<EquipoDTO> equipos;
   private List<EquipoJugadorDTO> participaciones;
-  private Date fecha;
+  private LocalDate fecha;
   private String hora;
-  private Integer duracionHoras;
+  private Integer duracionMinutos;
   private UsuarioDTO organizador;
   private Integer ubicacion;
   private String estadoPartido;

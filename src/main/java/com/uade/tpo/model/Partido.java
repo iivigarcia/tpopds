@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import com.uade.tpo.model.emparejamientoStrategy.EmparejamientoStrategy;
@@ -33,13 +33,13 @@ public class Partido {
     private Deporte deporte;
 
     @Column(name = "fecha", nullable = false)
-    private Date fecha;
+    private LocalDate fecha;
 
     @Column(name = "hora", nullable = false)
     private String hora;
 
-    @Column(name = "duracion_horas", nullable = false)
-    private int duracionHoras;
+    @Column(name = "duracion_minutos", nullable = false)
+    private int duracionMinutos;
 
     @Column(name = "geolocalization_id", nullable = false)
     private Integer geolocalizationId;

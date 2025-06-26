@@ -48,7 +48,7 @@ CREATE TABLE partidos (
     deporte_id BIGINT NOT NULL,
     fecha DATE NOT NULL,
     hora VARCHAR(255) NOT NULL,
-    duracion_horas INT NOT NULL,
+    duracion_minutos INT NOT NULL,
     geolocalization_id INT NOT NULL,
     organizador_id BIGINT NOT NULL,
     cantidad_jugadores INT,
