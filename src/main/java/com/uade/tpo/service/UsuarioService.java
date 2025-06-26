@@ -56,14 +56,15 @@ public class UsuarioService {
         }
 
         // Validar que la ubicación existe
-        Geolocalization ubicacion = geolocalizationRepository.findById(registroDTO.getUbicacionId())
-                .orElseThrow(() -> new RuntimeException("La ubicación especificada no existe."));
+        if (!geolocalizationRepository.existsById(registroDTO.getUbicacionId())) {
+            throw new RuntimeException("La ubicación especificada no existe.");
+        }
 
         Usuario usuario = new Usuario();
         usuario.setUsername(registroDTO.getUsername());
         usuario.setEmail(registroDTO.getEmail());
         usuario.setPassword(passwordEncoder.encode(registroDTO.getPassword()));
-        usuario.setUbicacion(ubicacion);
+        usuario.setGeolocalizationId(registroDTO.getUbicacionId());
 
         return usuarioRepository.save(usuario);
     }

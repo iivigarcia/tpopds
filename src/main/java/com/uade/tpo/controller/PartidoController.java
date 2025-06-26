@@ -105,6 +105,13 @@ public class PartidoController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/ubicacion/{ubicacionId}/incompletos")
+    public ResponseEntity<List<PartidoDTO>> obtenerPartidosIncompletosPorUbicacion(@PathVariable Integer ubicacionId) {
+        List<Partido> partidos = partidoService.obtenerPartidosIncompletosPorUbicacion(ubicacionId);
+        List<PartidoDTO> dtos = partidos.stream().map(this::convertToDto).collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarPartido(@PathVariable Long id) {
         partidoService.eliminarPartido(id);

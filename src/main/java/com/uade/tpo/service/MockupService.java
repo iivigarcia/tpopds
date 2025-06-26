@@ -126,9 +126,9 @@ public class MockupService {
       usuario.setPassword(passwordEncoder.encode("password123"));
 
       if (i <= 20) {
-        usuario.setUbicacion(ubicacionComun);
+        usuario.setGeolocalizationId(ubicacionComun.getId());
       } else {
-        usuario.setUbicacion(ubicaciones.get(random.nextInt(ubicaciones.size())));
+        usuario.setGeolocalizationId(ubicaciones.get(random.nextInt(ubicaciones.size())).getId());
       }
 
       usuarioRepository.save(usuario);

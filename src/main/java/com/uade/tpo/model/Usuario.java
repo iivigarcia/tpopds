@@ -18,9 +18,8 @@ public class Usuario {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "geolocalization_id", nullable = false)
-    private Geolocalization ubicacion;
+    @Column(name = "geolocalization_id", nullable = false)
+    private Integer geolocalizationId;
 
     @Column(nullable = false)
     private String password;

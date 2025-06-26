@@ -2,10 +2,15 @@ package com.uade.tpo.dto;
 
 import lombok.Data;
 import java.util.Date;
-import java.util.List;
 
 @Data
 public class PartidoCreateDTO {
-  private List<Long> equipoIds;
+  private Long deporteId;
   private Date fecha;
+  private String hora;
+  private Integer ubicacionId;
+  private Long organizadorId;
+  private Integer cantidadJugadores;
+  private String nivelMinimo;
+  private String nivelMaximo;
 }

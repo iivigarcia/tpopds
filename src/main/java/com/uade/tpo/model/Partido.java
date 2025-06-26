@@ -36,9 +36,8 @@ public class Partido {
     @Column(name = "hora", nullable = false)
     private String hora;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "geolocalization_id", nullable = false)
-    private Geolocalization ubicacion;
+    @Column(name = "geolocalization_id", nullable = false)
+    private Integer geolocalizationId;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "organizador_id", nullable = false)
