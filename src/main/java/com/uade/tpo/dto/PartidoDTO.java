@@ -10,6 +10,7 @@ public class PartidoDTO {
   private Long id;
   private Deporte deporte;
   private List<EquipoDTO> equipos;
+  private List<EquipoJugadorDTO> participaciones;
   private Date fecha;
   private String hora;
   private UsuarioDTO organizador;

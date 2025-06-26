@@ -4,8 +4,8 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- Drop all tables in correct order (due to foreign key constraints)
 DROP TABLE IF EXISTS estadisticas;
 DROP TABLE IF EXISTS comentarios;
-DROP TABLE IF EXISTS usuario_deporte;
 DROP TABLE IF EXISTS equipo_jugadores;
+DROP TABLE IF EXISTS usuario_deporte;
 DROP TABLE IF EXISTS partido_equipos;
 DROP TABLE IF EXISTS partidos_jugadores;
 DROP TABLE IF EXISTS partidos;
@@ -70,9 +70,11 @@ CREATE TABLE partido_equipos (
 );
 
 CREATE TABLE equipo_jugadores (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     equipo_id BIGINT NOT NULL,
     usuario_id BIGINT NOT NULL,
-    PRIMARY KEY (equipo_id, usuario_id),
+    inscrito BOOLEAN NOT NULL DEFAULT TRUE,
+    confirmado BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (equipo_id) REFERENCES equipos(id),
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );

@@ -6,7 +6,9 @@ import com.uade.tpo.model.Estadistica;
 import com.uade.tpo.model.Partido;
 import com.uade.tpo.model.Usuario;
 import com.uade.tpo.model.Geolocalization;
+import com.uade.tpo.model.EquipoJugador;
 import com.uade.tpo.repository.GeolocalizationRepository;
+import com.uade.tpo.repository.EquipoJugadorRepository;
 import com.uade.tpo.service.PartidoService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,9 @@ public class PartidoController {
     @Autowired
     private GeolocalizationRepository geolocalizationRepository;
 
+    @Autowired
+    private EquipoJugadorRepository equipoJugadorRepository;
+
     private UsuarioDTO convertUsuarioToDto(Usuario usuario) {
         if (usuario == null)
             return null;
@@ -36,7 +41,6 @@ public class PartidoController {
         dto.setUsername(usuario.getUsername());
         dto.setEmail(usuario.getEmail());
 
-        // Fetch and set the ubicacion
         Optional<Geolocalization> ubicacion = geolocalizationRepository.findById(usuario.getGeolocalizationId());
         dto.setUbicacion(ubicacion.orElse(null));
 
@@ -50,7 +54,6 @@ public class PartidoController {
         dto.setId(equipo.getId());
         dto.setNombre(equipo.getNombre());
 
-        // Convert and set the jugadores
         if (equipo.getJugadores() != null) {
             dto.setJugadores(equipo.getJugadores().stream()
                     .map(this::convertUsuarioToDto)
@@ -82,6 +85,17 @@ public class PartidoController {
         return dto;
     }
 
+    private EquipoJugadorDTO convertEquipoJugadorToDto(EquipoJugador equipoJugador) {
+        EquipoJugadorDTO dto = new EquipoJugadorDTO();
+        dto.setEquipoId(equipoJugador.getEquipo().getId());
+        dto.setUsuarioId(equipoJugador.getUsuario().getId());
+        dto.setUsuario(convertUsuarioToDto(equipoJugador.getUsuario()));
+        dto.setEquipo(convertEquipoToDto(equipoJugador.getEquipo()));
+        dto.setConfirmado(equipoJugador.isConfirmado());
+        dto.setInscrito(equipoJugador.isInscrito());
+        return dto;
+    }
+
     private PartidoDTO convertToDto(Partido partido) {
         PartidoDTO dto = new PartidoDTO();
         dto.setId(partido.getId());
@@ -98,6 +112,14 @@ public class PartidoController {
         if (partido.getEquipos() != null) {
             dto.setEquipos(
                     partido.getEquipos().stream().map(this::convertEquipoToDto).collect(Collectors.toList()));
+        }
+
+        List<EquipoJugador> participaciones = partido.getEquipos().stream()
+                .flatMap(equipo -> equipoJugadorRepository.findByEquipo(equipo).stream())
+                .collect(Collectors.toList());
+        if (participaciones != null && !participaciones.isEmpty()) {
+            dto.setParticipaciones(
+                    participaciones.stream().map(this::convertEquipoJugadorToDto).collect(Collectors.toList()));
         }
 
         if (partido.getComentarios() != null) {
@@ -202,6 +224,18 @@ public class PartidoController {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error al inscribir usuario: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/{partidoId}/confirmarParticipacion")
+    public ResponseEntity<String> confirmarParticipacion(@PathVariable Long partidoId, @RequestParam Long usuarioId) {
+        try {
+            partidoService.confirmarParticipacion(partidoId, usuarioId);
+            return ResponseEntity.ok("Participación confirmada correctamente");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error al confirmar participación: " + e.getMessage());
         }
     }
 

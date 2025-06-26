@@ -1,18 +1,8 @@
 package com.uade.tpo.service;
 
-import com.uade.tpo.dto.AuthRequestDTO;
-import com.uade.tpo.dto.RegistroDTO;
-import com.uade.tpo.dto.UsuarioDTO;
-import com.uade.tpo.dto.UsuarioDeporteDTO;
-import com.uade.tpo.dto.UsuarioUpdateDTO;
-import com.uade.tpo.model.Deporte;
-import com.uade.tpo.model.Geolocalization;
-import com.uade.tpo.model.UsuarioDeporte;
-import com.uade.tpo.repository.DeporteRepository;
-import com.uade.tpo.repository.GeolocalizationRepository;
-import com.uade.tpo.repository.UsuarioDeporteRepository;
-import com.uade.tpo.repository.UsuarioRepository;
-import com.uade.tpo.model.Usuario;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,8 +11,17 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import com.uade.tpo.dto.AuthRequestDTO;
+import com.uade.tpo.dto.RegistroDTO;
+import com.uade.tpo.dto.UsuarioDeporteDTO;
+import com.uade.tpo.dto.UsuarioUpdateDTO;
+import com.uade.tpo.model.Deporte;
+import com.uade.tpo.model.Usuario;
+import com.uade.tpo.model.UsuarioDeporte;
+import com.uade.tpo.repository.DeporteRepository;
+import com.uade.tpo.repository.GeolocalizationRepository;
+import com.uade.tpo.repository.UsuarioDeporteRepository;
+import com.uade.tpo.repository.UsuarioRepository;
 
 @Service
 public class UsuarioService {

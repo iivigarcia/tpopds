@@ -37,6 +37,9 @@ public class MockupService {
   private EstadisticaRepository estadisticaRepository;
 
   @Autowired
+  private EquipoJugadorRepository equipoJugadorRepository;
+
+  @Autowired
   private JdbcTemplate jdbcTemplate;
 
   @Autowired
@@ -51,6 +54,7 @@ public class MockupService {
   public void limpiarDB() {
     estadisticaRepository.deleteAll();
     comentarioRepository.deleteAll();
+    equipoJugadorRepository.deleteAll();
     usuarioDeporteRepository.deleteAll();
     partidoRepository.deleteAll();
     equipoRepository.deleteAll();
@@ -65,6 +69,7 @@ public class MockupService {
     jdbcTemplate.execute("ALTER TABLE comentarios AUTO_INCREMENT = 1");
     jdbcTemplate.execute("ALTER TABLE partidos AUTO_INCREMENT = 1");
     jdbcTemplate.execute("ALTER TABLE equipos AUTO_INCREMENT = 1");
+    jdbcTemplate.execute("ALTER TABLE equipo_jugadores AUTO_INCREMENT = 1");
     jdbcTemplate.execute("ALTER TABLE usuarios AUTO_INCREMENT = 1");
     jdbcTemplate.execute("ALTER TABLE deportes AUTO_INCREMENT = 1");
     jdbcTemplate.execute("ALTER TABLE geolocalizations AUTO_INCREMENT = 1");
