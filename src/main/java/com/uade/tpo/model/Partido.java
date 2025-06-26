@@ -6,6 +6,9 @@ import lombok.Data;
 
 import java.util.Date;
 import java.util.List;
+
+import com.uade.tpo.model.emparejamientoStrategy.EmparejamientoStrategy;
+import com.uade.tpo.model.emparejamientoStrategy.EmparejamientoStrategyConverter;
 import com.uade.tpo.model.state.EstadoPartido;
 import com.uade.tpo.model.state.EstadoPartidoConverter;
 import com.uade.tpo.model.state.NecesitamosJugadores;
@@ -54,6 +57,10 @@ public class Partido {
     @Column(name = "estado")
     private EstadoPartido estado;
 
+    @Convert(converter = EmparejamientoStrategyConverter.class)
+    @Column(name = "estrategia_emparejamiento")
+    private EmparejamientoStrategy estrategiaEmparejamiento;
+
     @OneToMany(mappedBy = "partido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comentario> comentarios;
 
@@ -96,5 +103,13 @@ public class Partido {
 
     public void cancelar() {
         this.estado.cancelar(this);
+    }
+
+    public void setEstrategiaEmparejamiento(EmparejamientoStrategy estrategia) {
+        this.estrategiaEmparejamiento = estrategia;
+    }
+
+    public void emparejar() {
+        this.estrategiaEmparejamiento.emparejar(this);
     }
 }

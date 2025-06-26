@@ -3,11 +3,12 @@ package com.uade.tpo.service;
 import com.uade.tpo.dto.PartidoCreateDTO;
 import com.uade.tpo.model.Equipo;
 import com.uade.tpo.model.Partido;
+import com.uade.tpo.model.emparejamientoStrategy.EmparejamientoStrategy;
 import com.uade.tpo.repository.EquipoRepository;
 import com.uade.tpo.repository.PartidoRepository;
 import com.uade.tpo.repository.UsuarioDeporteRepository;
 import com.uade.tpo.repository.UsuarioRepository;
-import com.uade.tpo.strategy.EmparejamientoStrategy;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
