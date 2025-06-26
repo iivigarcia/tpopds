@@ -11,6 +11,7 @@ import com.uade.tpo.repository.GeolocalizationRepository;
 import com.uade.tpo.repository.EquipoJugadorRepository;
 import com.uade.tpo.service.PartidoService;
 import com.uade.tpo.service.PartidoCronService;
+import com.uade.tpo.service.ComentarioService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -42,6 +43,9 @@ public class PartidoController {
 
     @Autowired
     private PartidoCronService partidoCronService;
+
+    @Autowired
+    private ComentarioService comentarioService;
 
     private UsuarioDTO convertUsuarioToDto(Usuario usuario) {
         if (usuario == null)
@@ -315,6 +319,44 @@ public class PartidoController {
             return ResponseEntity.ok("Cron job ejecutado manualmente correctamente");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error al ejecutar el cron job: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/{partidoId}/comentarios")
+    public ResponseEntity<?> agregarComentario(@PathVariable Long partidoId,
+            @RequestBody ComentarioCreateDTO createDTO) {
+        try {
+            createDTO.setPartidoId(partidoId);
+
+            Optional<Comentario> comentarioOpt = comentarioService.crearComentario(createDTO);
+            if (comentarioOpt.isPresent()) {
+                ComentarioDTO comentarioDTO = convertComentarioToDto(comentarioOpt.get());
+                return ResponseEntity.status(HttpStatus.CREATED).body(comentarioDTO);
+            } else {
+                return ResponseEntity.badRequest()
+                        .body(new ErrorResponseDTO("BAD_REQUEST", "No se pudo crear el comentario"));
+            }
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponseDTO("VALIDATION_ERROR", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(new ErrorResponseDTO("INTERNAL_ERROR", "Error interno del servidor"));
+        }
+    }
+
+    @GetMapping("/{partidoId}/comentarios")
+    public ResponseEntity<?> obtenerComentarios(@PathVariable Long partidoId) {
+        try {
+            List<Comentario> comentarios = comentarioService.obtenerComentariosPorPartido(partidoId);
+            List<ComentarioDTO> comentariosDTO = comentarios.stream()
+                    .map(this::convertComentarioToDto)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(comentariosDTO);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponseDTO("VALIDATION_ERROR", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(new ErrorResponseDTO("INTERNAL_ERROR", "Error interno del servidor"));
         }
     }
 
