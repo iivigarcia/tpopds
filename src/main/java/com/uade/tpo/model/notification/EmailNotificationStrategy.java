@@ -28,7 +28,8 @@ public class EmailNotificationStrategy implements NotificationStrategy {
     
     @Autowired
     private DeporteRepository deporteRepository;
-    
+
+
     @Override
     public void sendNotification(Partido partido, String eventType) {
         switch (eventType) {

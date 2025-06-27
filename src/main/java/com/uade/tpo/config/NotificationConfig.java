@@ -1,26 +1,33 @@
 package com.uade.tpo.config;
 
 import com.uade.tpo.model.notification.NotificationManager;
-import com.uade.tpo.model.notification.EmailNotificationStrategy;
+import com.uade.tpo.model.notification.EmailNotificationService;
+import com.uade.tpo.model.notification.PushNotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 
 import jakarta.annotation.PostConstruct;
 
 @Configuration
+@DependsOn({"emailNotificationService", "pushNotificationService"})
 public class NotificationConfig {
     
     @Autowired
     private NotificationManager notificationManager;
     
     @Autowired
-    private EmailNotificationStrategy emailNotificationStrategy;
+    private EmailNotificationService emailNotificationService;
+    
+    @Autowired
+    private PushNotificationService pushNotificationService;
     
     @PostConstruct
     public void initializeNotificationSystem() {
-        // Set default strategy to EMAIL
-        notificationManager.setStrategy(emailNotificationStrategy);
+        // Register observers
+        notificationManager.registerObserver(emailNotificationService);
+        notificationManager.registerObserver(pushNotificationService);
         
-        System.out.println("Notification system initialized with default strategy: EMAIL");
+        System.out.println("Notification system initialized with observers: Email and Push");
     }
 } 

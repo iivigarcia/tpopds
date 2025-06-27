@@ -360,23 +360,18 @@ public class PartidoController {
 
     @PutMapping("/notificaciones/estrategia")
     public ResponseEntity<String> cambiarEstrategiaNotificacion(@RequestParam String tipo) {
-        try {
-            notificationManager.setStrategyByName(tipo.toUpperCase());
-            return ResponseEntity.ok("Estrategia de notificación cambiada a: " + tipo.toUpperCase());
-            
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Estrategia no válida. Use: EMAIL o PUSH");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .body("Error al cambiar la estrategia de notificación: " + e.getMessage());
-        }
+
+        notificationManager.setNotificationType(tipo);
+        return ResponseEntity.ok("Estrategia de notificación cambiada a: " + tipo.toUpperCase());
+
+
     }
 
     @GetMapping("/notificaciones/estrategia")
     public ResponseEntity<String> obtenerEstrategiaNotificacion() {
         try {
-            String currentStrategy = notificationManager.getCurrentStrategyName();
-            return ResponseEntity.ok("Estrategia de notificación actual: " + currentStrategy);
+            String currentType = notificationManager.getCurrentNotificationType();
+            return ResponseEntity.ok("Estrategia de notificación actual: " + currentType);
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                     .body("Error al obtener la estrategia de notificación: " + e.getMessage());
