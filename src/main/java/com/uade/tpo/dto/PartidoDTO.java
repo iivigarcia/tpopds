@@ -10,7 +10,7 @@ public class PartidoDTO {
   private Long id;
   private Deporte deporte;
   private List<EquipoDTO> equipos;
-  private List<EquipoJugadorDTO> participaciones;
+  private List<ParticipacionSimpleDTO> participaciones;
   private LocalDate fecha;
   private String hora;
   private Integer duracionMinutos;
@@ -20,4 +20,5 @@ public class PartidoDTO {
   private String estrategiaEmparejamiento;
   private List<ComentarioDTO> comentarios;
   private List<EstadisticaDTO> estadisticas;
+  private String equipoGanador;
 }

@@ -1,16 +1,42 @@
 package com.uade.tpo.controller;
 
-import com.uade.tpo.dto.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.uade.tpo.dto.ComentarioCreateDTO;
+import com.uade.tpo.dto.ComentarioDTO;
+import com.uade.tpo.dto.EquipoDTO;
+import com.uade.tpo.dto.ErrorResponseDTO;
+import com.uade.tpo.dto.EstadisticaCreateDTO;
+import com.uade.tpo.dto.EstadisticaDTO;
+import com.uade.tpo.dto.EstadisticaUpdateDTO;
+import com.uade.tpo.dto.JugadorSimpleDTO;
+import com.uade.tpo.dto.ParticipacionSimpleDTO;
+import com.uade.tpo.dto.PartidoCreateDTO;
+import com.uade.tpo.dto.PartidoDTO;
+import com.uade.tpo.dto.UsuarioDTO;
 import com.uade.tpo.model.Comentario;
+import com.uade.tpo.model.EquipoJugador;
 import com.uade.tpo.model.Estadistica;
+import com.uade.tpo.model.Geolocalization;
 import com.uade.tpo.model.Partido;
 import com.uade.tpo.model.Usuario;
-import com.uade.tpo.model.Geolocalization;
-import com.uade.tpo.model.EquipoJugador;
-import com.uade.tpo.repository.GeolocalizationRepository;
 import com.uade.tpo.repository.EquipoJugadorRepository;
-import com.uade.tpo.service.PartidoService;
-import com.uade.tpo.service.PartidoCronService;
+import com.uade.tpo.repository.GeolocalizationRepository;
 import com.uade.tpo.service.ComentarioService;
 import com.uade.tpo.model.notification.NotificationManager;
 
@@ -22,6 +48,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import com.uade.tpo.service.EstadisticaService;
+import com.uade.tpo.service.PartidoCronService;
+import com.uade.tpo.service.PartidoService;
+
 
 @RestController
 @RequestMapping("/api/partidos")
@@ -44,6 +74,7 @@ public class PartidoController {
 
     @Autowired
     private NotificationManager notificationManager;
+    private EstadisticaService estadisticaService;
 
     private UsuarioDTO convertUsuarioToDto(Usuario usuario) {
         if (usuario == null)
@@ -59,6 +90,13 @@ public class PartidoController {
         return dto;
     }
 
+    private JugadorSimpleDTO convertJugadorToSimpleDto(Usuario usuario) {
+        JugadorSimpleDTO dto = new JugadorSimpleDTO();
+        dto.setId(usuario.getId());
+        dto.setUsername(usuario.getUsername());
+        return dto;
+    }
+
     private EquipoDTO convertEquipoToDto(com.uade.tpo.model.Equipo equipo) {
         if (equipo == null)
             return null;
@@ -68,7 +106,7 @@ public class PartidoController {
 
         if (equipo.getJugadores() != null) {
             dto.setJugadores(equipo.getJugadores().stream()
-                    .map(this::convertUsuarioToDto)
+                    .map(this::convertJugadorToSimpleDto)
                     .collect(Collectors.toList()));
         }
 
@@ -97,14 +135,12 @@ public class PartidoController {
         return dto;
     }
 
-    private EquipoJugadorDTO convertEquipoJugadorToDto(EquipoJugador equipoJugador) {
-        EquipoJugadorDTO dto = new EquipoJugadorDTO();
+    private ParticipacionSimpleDTO convertEquipoJugadorToSimpleDto(EquipoJugador equipoJugador) {
+        ParticipacionSimpleDTO dto = new ParticipacionSimpleDTO();
         dto.setEquipoId(equipoJugador.getEquipo().getId());
         dto.setUsuarioId(equipoJugador.getUsuario().getId());
-        dto.setUsuario(convertUsuarioToDto(equipoJugador.getUsuario()));
-        dto.setEquipo(convertEquipoToDto(equipoJugador.getEquipo()));
-        dto.setConfirmado(equipoJugador.isConfirmado());
         dto.setInscrito(equipoJugador.isInscrito());
+        dto.setConfirmado(equipoJugador.isConfirmado());
         return dto;
     }
 
@@ -132,7 +168,7 @@ public class PartidoController {
                 .collect(Collectors.toList());
         if (participaciones != null && !participaciones.isEmpty()) {
             dto.setParticipaciones(
-                    participaciones.stream().map(this::convertEquipoJugadorToDto).collect(Collectors.toList()));
+                    participaciones.stream().map(this::convertEquipoJugadorToSimpleDto).collect(Collectors.toList()));
         }
 
         if (partido.getComentarios() != null) {
@@ -143,6 +179,11 @@ public class PartidoController {
             dto.setEstadisticas(
                     partido.getEstadisticas().stream().map(this::convertEstadisticaToDto).collect(Collectors.toList()));
         }
+
+        if (partido.getGanador() != null) {
+            dto.setEquipoGanador(partido.getGanador().getNombre());
+        }
+
         return dto;
     }
 
@@ -375,6 +416,63 @@ public class PartidoController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                     .body("Error al obtener la estrategia de notificación: " + e.getMessage());
+
+    @PostMapping("/{partidoId}/estadisticas")
+    public ResponseEntity<?> agregarEstadistica(@PathVariable Long partidoId,
+            @RequestBody EstadisticaCreateDTO createDTO) {
+        try {
+            createDTO.setPartidoId(partidoId);
+
+            Optional<Estadistica> estadisticaOpt = estadisticaService.crearEstadistica(createDTO);
+            if (estadisticaOpt.isPresent()) {
+                EstadisticaDTO estadisticaDTO = convertEstadisticaToDto(estadisticaOpt.get());
+                return ResponseEntity.status(HttpStatus.CREATED).body(estadisticaDTO);
+            } else {
+                return ResponseEntity.badRequest()
+                        .body(new ErrorResponseDTO("BAD_REQUEST", "No se pudo crear la estadística"));
+            }
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponseDTO("VALIDATION_ERROR", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(new ErrorResponseDTO("INTERNAL_ERROR", "Error interno del servidor"));
+        }
+    }
+
+    @GetMapping("/{partidoId}/estadisticas")
+    public ResponseEntity<?> obtenerEstadisticas(@PathVariable Long partidoId) {
+        try {
+            List<Estadistica> estadisticas = estadisticaService.obtenerEstadisticasPorPartido(partidoId);
+            List<EstadisticaDTO> estadisticasDTO = estadisticas.stream()
+                    .map(this::convertEstadisticaToDto)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(estadisticasDTO);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponseDTO("VALIDATION_ERROR", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(new ErrorResponseDTO("INTERNAL_ERROR", "Error interno del servidor"));
+        }
+    }
+
+    @PutMapping("/estadisticas/{estadisticaId}")
+    public ResponseEntity<?> modificarEstadistica(@PathVariable Long estadisticaId,
+            @RequestBody EstadisticaUpdateDTO updateDTO) {
+        try {
+            Optional<Estadistica> estadisticaOpt = estadisticaService.modificarEstadistica(estadisticaId, updateDTO);
+            if (estadisticaOpt.isPresent()) {
+                EstadisticaDTO estadisticaDTO = convertEstadisticaToDto(estadisticaOpt.get());
+                return ResponseEntity.ok(estadisticaDTO);
+            } else {
+                return ResponseEntity.badRequest()
+                        .body(new ErrorResponseDTO("BAD_REQUEST", "No se pudo modificar la estadística"));
+            }
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponseDTO("VALIDATION_ERROR", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(new ErrorResponseDTO("INTERNAL_ERROR", "Error interno del servidor"));
+
         }
     }
 
