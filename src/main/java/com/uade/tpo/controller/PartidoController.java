@@ -12,21 +12,16 @@ import com.uade.tpo.repository.EquipoJugadorRepository;
 import com.uade.tpo.service.PartidoService;
 import com.uade.tpo.service.PartidoCronService;
 import com.uade.tpo.service.ComentarioService;
+import com.uade.tpo.model.notification.NotificationManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.Duration;
 
 @RestController
 @RequestMapping("/api/partidos")
@@ -46,6 +41,9 @@ public class PartidoController {
 
     @Autowired
     private ComentarioService comentarioService;
+
+    @Autowired
+    private NotificationManager notificationManager;
 
     private UsuarioDTO convertUsuarioToDto(Usuario usuario) {
         if (usuario == null)
@@ -357,6 +355,45 @@ public class PartidoController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                     .body(new ErrorResponseDTO("INTERNAL_ERROR", "Error interno del servidor"));
+        }
+    }
+
+    @PutMapping("/notificaciones/estrategia")
+    public ResponseEntity<String> cambiarEstrategiaNotificacion(@RequestParam String tipo) {
+        try {
+            com.uade.tpo.model.notification.NotificationType notificationType;
+            
+            switch (tipo.toUpperCase()) {
+                case "EMAIL":
+                    notificationType = com.uade.tpo.model.notification.NotificationType.EMAIL;
+                    break;
+                case "PUSH":
+                    notificationType = com.uade.tpo.model.notification.NotificationType.PUSH;
+                    break;
+                case "BOTH":
+                    notificationType = com.uade.tpo.model.notification.NotificationType.BOTH;
+                    break;
+                default:
+                    return ResponseEntity.badRequest().body("Tipo de notificación no válido. Use: EMAIL, PUSH o BOTH");
+            }
+            
+            notificationManager.setNotificationType(notificationType);
+            return ResponseEntity.ok("Estrategia de notificación cambiada a: " + tipo.toUpperCase());
+            
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Error al cambiar la estrategia de notificación: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/notificaciones/estrategia")
+    public ResponseEntity<String> obtenerEstrategiaNotificacion() {
+        try {
+            com.uade.tpo.model.notification.NotificationType currentType = notificationManager.getCurrentNotificationType();
+            return ResponseEntity.ok("Estrategia de notificación actual: " + currentType.name());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Error al obtener la estrategia de notificación: " + e.getMessage());
         }
     }
 

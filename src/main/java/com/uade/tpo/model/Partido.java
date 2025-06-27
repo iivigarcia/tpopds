@@ -13,6 +13,7 @@ import com.uade.tpo.model.emparejamientoStrategy.EmparejarPorNivel;
 import com.uade.tpo.model.state.EstadoPartido;
 import com.uade.tpo.model.state.EstadoPartidoConverter;
 import com.uade.tpo.model.state.NecesitamosJugadores;
+import com.uade.tpo.model.notification.NotificationManager;
 
 @Data
 @Entity
@@ -80,9 +81,45 @@ public class Partido {
     @JsonIgnore
     private Equipo ganador;
 
+    // Transient field for notification manager (not persisted)
+    @Transient
+    private NotificationManager notificationManager;
+
+    public void setNotificationManager(NotificationManager notificationManager) {
+        this.notificationManager = notificationManager;
+    }
+
     public void setEstado(EstadoPartido nuevoEstado) {
+        EstadoPartido estadoAnterior = this.estado;
         this.estado = nuevoEstado;
         System.out.println("El estado del partido ha cambiado a: " + this.estado.getClass().getSimpleName());
+        
+        // Notify observers about state change
+        if (notificationManager != null) {
+            notifyStateChange(estadoAnterior, nuevoEstado);
+        }
+    }
+
+    private void notifyStateChange(EstadoPartido estadoAnterior, EstadoPartido nuevoEstado) {
+        String eventType = getEventTypeForStateChange(nuevoEstado);
+        if (eventType != null) {
+            notificationManager.notifyObservers(this, eventType);
+        }
+    }
+
+    private String getEventTypeForStateChange(EstadoPartido nuevoEstado) {
+        if (nuevoEstado instanceof com.uade.tpo.model.state.PartidoArmado) {
+            return "PARTIDO_ARMADO";
+        } else if (nuevoEstado instanceof com.uade.tpo.model.state.Confirmado) {
+            return "PARTIDO_CONFIRMADO";
+        } else if (nuevoEstado instanceof com.uade.tpo.model.state.EnJuego) {
+            return "PARTIDO_EN_JUEGO";
+        } else if (nuevoEstado instanceof com.uade.tpo.model.state.Finalizado) {
+            return "PARTIDO_FINALIZADO";
+        } else if (nuevoEstado instanceof com.uade.tpo.model.state.Cancelado) {
+            return "PARTIDO_CANCELADO";
+        }
+        return null;
     }
 
     public void crear() {
