@@ -7,5 +7,5 @@ import java.util.List;
 public class EquipoDTO {
   private Long id;
   private String nombre;
-  private List<UsuarioDTO> jugadores;
+  private List<JugadorSimpleDTO> jugadores;
 }

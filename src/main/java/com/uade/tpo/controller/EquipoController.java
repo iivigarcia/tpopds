@@ -2,6 +2,7 @@ package com.uade.tpo.controller;
 
 import com.uade.tpo.dto.EquipoCreateDTO;
 import com.uade.tpo.dto.EquipoDTO;
+import com.uade.tpo.dto.JugadorSimpleDTO;
 import com.uade.tpo.dto.UsuarioDTO;
 import com.uade.tpo.model.Equipo;
 import com.uade.tpo.service.EquipoService;
@@ -21,11 +22,10 @@ public class EquipoController {
     @Autowired
     private EquipoService equipoService;
 
-    private UsuarioDTO convertUsuarioToDto(com.uade.tpo.model.Usuario usuario) {
-        UsuarioDTO dto = new UsuarioDTO();
+    private JugadorSimpleDTO convertJugadorToSimpleDto(com.uade.tpo.model.Usuario usuario) {
+        JugadorSimpleDTO dto = new JugadorSimpleDTO();
         dto.setId(usuario.getId());
         dto.setUsername(usuario.getUsername());
-        dto.setEmail(usuario.getEmail());
         return dto;
     }
 
@@ -35,7 +35,7 @@ public class EquipoController {
         dto.setNombre(equipo.getNombre());
         if (equipo.getJugadores() != null) {
             dto.setJugadores(
-                    equipo.getJugadores().stream().map(this::convertUsuarioToDto).collect(Collectors.toList()));
+                    equipo.getJugadores().stream().map(this::convertJugadorToSimpleDto).collect(Collectors.toList()));
         }
         return dto;
     }

@@ -20,11 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.uade.tpo.dto.ComentarioCreateDTO;
 import com.uade.tpo.dto.ComentarioDTO;
 import com.uade.tpo.dto.EquipoDTO;
-import com.uade.tpo.dto.EquipoJugadorDTO;
 import com.uade.tpo.dto.ErrorResponseDTO;
 import com.uade.tpo.dto.EstadisticaCreateDTO;
 import com.uade.tpo.dto.EstadisticaDTO;
 import com.uade.tpo.dto.EstadisticaUpdateDTO;
+import com.uade.tpo.dto.JugadorSimpleDTO;
+import com.uade.tpo.dto.ParticipacionSimpleDTO;
 import com.uade.tpo.dto.PartidoCreateDTO;
 import com.uade.tpo.dto.PartidoDTO;
 import com.uade.tpo.dto.UsuarioDTO;
@@ -77,6 +78,13 @@ public class PartidoController {
         return dto;
     }
 
+    private JugadorSimpleDTO convertJugadorToSimpleDto(Usuario usuario) {
+        JugadorSimpleDTO dto = new JugadorSimpleDTO();
+        dto.setId(usuario.getId());
+        dto.setUsername(usuario.getUsername());
+        return dto;
+    }
+
     private EquipoDTO convertEquipoToDto(com.uade.tpo.model.Equipo equipo) {
         if (equipo == null)
             return null;
@@ -86,7 +94,7 @@ public class PartidoController {
 
         if (equipo.getJugadores() != null) {
             dto.setJugadores(equipo.getJugadores().stream()
-                    .map(this::convertUsuarioToDto)
+                    .map(this::convertJugadorToSimpleDto)
                     .collect(Collectors.toList()));
         }
 
@@ -115,14 +123,12 @@ public class PartidoController {
         return dto;
     }
 
-    private EquipoJugadorDTO convertEquipoJugadorToDto(EquipoJugador equipoJugador) {
-        EquipoJugadorDTO dto = new EquipoJugadorDTO();
+    private ParticipacionSimpleDTO convertEquipoJugadorToSimpleDto(EquipoJugador equipoJugador) {
+        ParticipacionSimpleDTO dto = new ParticipacionSimpleDTO();
         dto.setEquipoId(equipoJugador.getEquipo().getId());
         dto.setUsuarioId(equipoJugador.getUsuario().getId());
-        dto.setUsuario(convertUsuarioToDto(equipoJugador.getUsuario()));
-        dto.setEquipo(convertEquipoToDto(equipoJugador.getEquipo()));
-        dto.setConfirmado(equipoJugador.isConfirmado());
         dto.setInscrito(equipoJugador.isInscrito());
+        dto.setConfirmado(equipoJugador.isConfirmado());
         return dto;
     }
 
@@ -150,7 +156,7 @@ public class PartidoController {
                 .collect(Collectors.toList());
         if (participaciones != null && !participaciones.isEmpty()) {
             dto.setParticipaciones(
-                    participaciones.stream().map(this::convertEquipoJugadorToDto).collect(Collectors.toList()));
+                    participaciones.stream().map(this::convertEquipoJugadorToSimpleDto).collect(Collectors.toList()));
         }
 
         if (partido.getComentarios() != null) {
