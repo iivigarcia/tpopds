@@ -24,6 +24,7 @@ import com.uade.tpo.repository.GeolocalizationRepository;
 import com.uade.tpo.repository.PartidoRepository;
 import com.uade.tpo.repository.UsuarioDeporteRepository;
 import com.uade.tpo.repository.UsuarioRepository;
+import com.uade.tpo.model.notification.NotificationManager;
 
 @Service
 public class PartidoService {
@@ -42,6 +43,8 @@ public class PartidoService {
     private UsuarioDeporteRepository usuarioDeporteRepository;
     @Autowired
     private EquipoJugadorRepository equipoJugadorRepository;
+    @Autowired
+    private NotificationManager notificationManager;
 
     public Optional<Partido> crearPartido(PartidoCreateDTO dto) {
         if (dto.getCantidadJugadores() <= 0) {
@@ -77,6 +80,9 @@ public class PartidoService {
         partido.setNivelMinimo(NivelJuego.valueOf(dto.getNivelMinimo()));
         partido.setNivelMaximo(NivelJuego.valueOf(dto.getNivelMaximo()));
 
+        // Configure notification manager for the partido
+        partido.setNotificationManager(notificationManager);
+
         partido = partidoRepository.save(partido);
 
         List<Equipo> equipos = new ArrayList<>();
@@ -106,6 +112,9 @@ public class PartidoService {
         participacionOrganizador.setInscrito(true);
         participacionOrganizador.setConfirmado(true); // Organizer is confirmed by default
         equipoJugadorRepository.save(participacionOrganizador);
+
+        // Notify about new partido creation
+        notificationManager.notifyPartidoCreated(partido);
 
         return Optional.of(partido);
     }
@@ -195,6 +204,8 @@ public class PartidoService {
                 .sum();
 
         if (totalJugadoresActuales >= totalJugadoresNecesarios) {
+            // Ensure notification manager is configured
+            partido.setNotificationManager(notificationManager);
             partido.armar();
         }
 
@@ -204,6 +215,8 @@ public class PartidoService {
     public void cancelarPartido(Long partidoId) {
         Partido partido = partidoRepository.findById(partidoId)
                 .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado"));
+        // Ensure notification manager is configured
+        partido.setNotificationManager(notificationManager);
         partido.cancelar();
         partidoRepository.save(partido);
     }
@@ -275,6 +288,8 @@ public class PartidoService {
                 .sum();
 
         if (totalJugadoresActuales >= partido.getCantidadJugadores()) {
+            // Ensure notification manager is configured
+            partido.setNotificationManager(notificationManager);
             partido.armar();
         }
 
@@ -317,6 +332,8 @@ public class PartidoService {
         int totalJugadoresNecesarios = partido.getCantidadJugadores();
 
         if (totalJugadoresConfirmados >= totalJugadoresNecesarios) {
+            // Ensure notification manager is configured
+            partido.setNotificationManager(notificationManager);
             partido.confirmar();
             partidoRepository.save(partido);
         }
@@ -349,6 +366,8 @@ public class PartidoService {
         int totalJugadoresNecesarios = partido.getCantidadJugadores();
 
         if (totalJugadoresConfirmados >= totalJugadoresNecesarios) {
+            // Ensure notification manager is configured
+            partido.setNotificationManager(notificationManager);
             partido.confirmar();
             partidoRepository.save(partido);
         }
@@ -366,6 +385,8 @@ public class PartidoService {
                     "El partido debe estar en estado 'Confirmado' para poder comenzar. Estado actual: " + estadoActual);
         }
 
+        // Ensure notification manager is configured
+        partido.setNotificationManager(notificationManager);
         partido.comenzar();
         partidoRepository.save(partido);
     }
@@ -374,6 +395,8 @@ public class PartidoService {
         Partido partido = partidoRepository.findById(partidoId)
                 .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado"));
 
+        // Ensure notification manager is configured
+        partido.setNotificationManager(notificationManager);
         partido.finalizar();
         partidoRepository.save(partido);
     }
