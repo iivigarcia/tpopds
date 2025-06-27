@@ -10,7 +10,7 @@ import java.util.List;
 public class NotificationManager implements NotificationSubject {
     
     private final List<NotificationObserver> observers = new ArrayList<>();
-    private NotificationType currentNotificationType = NotificationType.BOTH;
+    private NotificationType currentNotificationType = NotificationType.EMAIL;
     
     @Override
     public void registerObserver(NotificationObserver observer) {
@@ -39,8 +39,6 @@ public class NotificationManager implements NotificationSubject {
                 return observer instanceof EmailNotificationService;
             case PUSH:
                 return observer instanceof PushNotificationService;
-            case BOTH:
-                return true;
             default:
                 return false;
         }
