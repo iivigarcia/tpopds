@@ -1,79 +1,76 @@
 package com.uade.tpo.model.notification;
 
 import com.uade.tpo.model.Partido;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class NotificationManager implements NotificationSubject {
+public class NotificationManager {
     
-    private final List<NotificationObserver> observers = new ArrayList<>();
-    private NotificationType currentNotificationType = NotificationType.EMAIL;
+    @Autowired
+    private List<NotificationStrategy> strategies;
     
-    @Override
-    public void registerObserver(NotificationObserver observer) {
-        if (!observers.contains(observer)) {
-            observers.add(observer);
-        }
+    private NotificationStrategy currentStrategy;
+    
+    public NotificationManager() {
+        this.currentStrategy = new EmailNotificationStrategy();
     }
     
-    @Override
-    public void removeObserver(NotificationObserver observer) {
-        observers.remove(observer);
+    public void setStrategy(NotificationStrategy strategy) {
+        this.currentStrategy = strategy;
+        System.out.println("Estrategia de notificación cambiada a: " + strategy.getStrategyName());
     }
     
-    @Override
-    public void notifyObservers(Partido partido, String eventType) {
-        for (NotificationObserver observer : observers) {
-            if (shouldNotifyObserver(observer)) {
-                observer.update(partido, eventType);
+    public void setStrategyByName(String strategyName) {
+        for (NotificationStrategy strategy : strategies) {
+            if (strategy.getStrategyName().equalsIgnoreCase(strategyName)) {
+                this.currentStrategy = strategy;
+                System.out.println("Estrategia de notificación cambiada a: " + strategyName);
+                return;
             }
         }
+        throw new IllegalArgumentException("Estrategia no encontrada: " + strategyName);
     }
     
-    private boolean shouldNotifyObserver(NotificationObserver observer) {
-        switch (currentNotificationType) {
-            case EMAIL:
-                return observer instanceof EmailNotificationService;
-            case PUSH:
-                return observer instanceof PushNotificationService;
-            default:
-                return false;
+    public NotificationStrategy getCurrentStrategy() {
+        return currentStrategy;
+    }
+    
+    public String getCurrentStrategyName() {
+        return currentStrategy != null ? currentStrategy.getStrategyName() : "NONE";
+    }
+    
+    public void sendNotification(Partido partido, String eventType) {
+        if (currentStrategy != null) {
+            currentStrategy.sendNotification(partido, eventType);
+        } else {
+            System.out.println("No hay estrategia de notificación configurada");
         }
-    }
-    
-    public void setNotificationType(NotificationType notificationType) {
-        this.currentNotificationType = notificationType;
-        System.out.println("Tipo de notificación cambiado a: " + notificationType);
-    }
-    
-    public NotificationType getCurrentNotificationType() {
-        return currentNotificationType;
     }
     
     public void notifyPartidoCreated(Partido partido) {
-        notifyObservers(partido, "PARTIDO_CREADO");
+        sendNotification(partido, "PARTIDO_CREADO");
     }
     
     public void notifyPartidoArmado(Partido partido) {
-        notifyObservers(partido, "PARTIDO_ARMADO");
+        sendNotification(partido, "PARTIDO_ARMADO");
     }
     
     public void notifyPartidoConfirmado(Partido partido) {
-        notifyObservers(partido, "PARTIDO_CONFIRMADO");
+        sendNotification(partido, "PARTIDO_CONFIRMADO");
     }
     
     public void notifyPartidoEnJuego(Partido partido) {
-        notifyObservers(partido, "PARTIDO_EN_JUEGO");
+        sendNotification(partido, "PARTIDO_EN_JUEGO");
     }
     
     public void notifyPartidoFinalizado(Partido partido) {
-        notifyObservers(partido, "PARTIDO_FINALIZADO");
+        sendNotification(partido, "PARTIDO_FINALIZADO");
     }
     
     public void notifyPartidoCancelado(Partido partido) {
-        notifyObservers(partido, "PARTIDO_CANCELADO");
+        sendNotification(partido, "PARTIDO_CANCELADO");
     }
 } 

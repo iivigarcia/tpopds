@@ -103,7 +103,7 @@ public class Partido {
     private void notifyStateChange(EstadoPartido estadoAnterior, EstadoPartido nuevoEstado) {
         String eventType = getEventTypeForStateChange(nuevoEstado);
         if (eventType != null) {
-            notificationManager.notifyObservers(this, eventType);
+            notificationManager.sendNotification(this, eventType);
         }
     }
 

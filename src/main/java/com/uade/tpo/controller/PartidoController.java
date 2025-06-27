@@ -361,25 +361,11 @@ public class PartidoController {
     @PutMapping("/notificaciones/estrategia")
     public ResponseEntity<String> cambiarEstrategiaNotificacion(@RequestParam String tipo) {
         try {
-            com.uade.tpo.model.notification.NotificationType notificationType;
-            
-            switch (tipo.toUpperCase()) {
-                case "EMAIL":
-                    notificationType = com.uade.tpo.model.notification.NotificationType.EMAIL;
-                    break;
-                case "PUSH":
-                    notificationType = com.uade.tpo.model.notification.NotificationType.PUSH;
-                    break;
-                case "BOTH":
-                    notificationType = com.uade.tpo.model.notification.NotificationType.BOTH;
-                    break;
-                default:
-                    return ResponseEntity.badRequest().body("Tipo de notificación no válido. Use: EMAIL, PUSH o BOTH");
-            }
-            
-            notificationManager.setNotificationType(notificationType);
+            notificationManager.setStrategyByName(tipo.toUpperCase());
             return ResponseEntity.ok("Estrategia de notificación cambiada a: " + tipo.toUpperCase());
             
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Estrategia no válida. Use: EMAIL o PUSH");
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                     .body("Error al cambiar la estrategia de notificación: " + e.getMessage());
@@ -389,8 +375,8 @@ public class PartidoController {
     @GetMapping("/notificaciones/estrategia")
     public ResponseEntity<String> obtenerEstrategiaNotificacion() {
         try {
-            com.uade.tpo.model.notification.NotificationType currentType = notificationManager.getCurrentNotificationType();
-            return ResponseEntity.ok("Estrategia de notificación actual: " + currentType.name());
+            String currentStrategy = notificationManager.getCurrentStrategyName();
+            return ResponseEntity.ok("Estrategia de notificación actual: " + currentStrategy);
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                     .body("Error al obtener la estrategia de notificación: " + e.getMessage());
