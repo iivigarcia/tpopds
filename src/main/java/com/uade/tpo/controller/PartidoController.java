@@ -416,6 +416,8 @@ public class PartidoController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
                     .body("Error al obtener la estrategia de notificación: " + e.getMessage());
+        }
+    }
 
     @PostMapping("/{partidoId}/estadisticas")
     public ResponseEntity<?> agregarEstadistica(@PathVariable Long partidoId,
