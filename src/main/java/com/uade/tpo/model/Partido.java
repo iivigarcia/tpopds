@@ -1,29 +1,39 @@
 package com.uade.tpo.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
-import lombok.Data;
-
 import java.time.LocalDate;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.uade.tpo.model.emparejamientoStrategy.EmparejamientoStrategy;
 import com.uade.tpo.model.emparejamientoStrategy.EmparejamientoStrategyConverter;
 import com.uade.tpo.model.emparejamientoStrategy.EmparejarPorNivel;
+import com.uade.tpo.model.notification.NotificationManager;
+import com.uade.tpo.model.notification.Observado;
 import com.uade.tpo.model.state.EstadoPartido;
 import com.uade.tpo.model.state.EstadoPartidoConverter;
 import com.uade.tpo.model.state.NecesitamosJugadores;
-import com.uade.tpo.model.notification.NotificationManager;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import lombok.Data;
 
 @Data
 @Entity
 @Table(name = "partidos")
-public class Partido {
-
-    {
-        this.estado = new NecesitamosJugadores();
-        this.estrategiaEmparejamiento = new EmparejarPorNivel();
-    }
+public class Partido extends Observado {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -85,64 +95,74 @@ public class Partido {
     @Transient
     private NotificationManager notificationManager;
 
+    public Partido() {
+
+    }
+
+    public void initializeDefaults() {
+        if (this.estado == null) {
+            this.estado = new NecesitamosJugadores();
+        }
+        if (this.estrategiaEmparejamiento == null) {
+            this.estrategiaEmparejamiento = new EmparejarPorNivel();
+        }
+        if (this.notificationManager == null) {
+            this.notificationManager = new NotificationManager();
+            this.add(this.notificationManager);
+        }
+    }
+
     public void setNotificationManager(NotificationManager notificationManager) {
         this.notificationManager = notificationManager;
     }
 
     public void setEstado(EstadoPartido nuevoEstado) {
-        EstadoPartido estadoAnterior = this.estado;
         this.estado = nuevoEstado;
         System.out.println("El estado del partido ha cambiado a: " + this.estado.getClass().getSimpleName());
-        
-        // Notify observers about state change
-        if (notificationManager != null) {
-            notifyStateChange(estadoAnterior, nuevoEstado);
-        }
-    }
-
-    private void notifyStateChange(EstadoPartido estadoAnterior, EstadoPartido nuevoEstado) {
-        String eventType = getEventTypeForStateChange(nuevoEstado);
-        if (eventType != null) {
-            notificationManager.notifyObservers(this, eventType);
-        }
-    }
-
-    private String getEventTypeForStateChange(EstadoPartido nuevoEstado) {
-        if (nuevoEstado instanceof com.uade.tpo.model.state.PartidoArmado) {
-            return "PARTIDO_ARMADO";
-        } else if (nuevoEstado instanceof com.uade.tpo.model.state.Confirmado) {
-            return "PARTIDO_CONFIRMADO";
-        } else if (nuevoEstado instanceof com.uade.tpo.model.state.EnJuego) {
-            return "PARTIDO_EN_JUEGO";
-        } else if (nuevoEstado instanceof com.uade.tpo.model.state.Finalizado) {
-            return "PARTIDO_FINALIZADO";
-        } else if (nuevoEstado instanceof com.uade.tpo.model.state.Cancelado) {
-            return "PARTIDO_CANCELADO";
-        }
-        return null;
+        System.out.println("Notificando observadores...");
+        notifyObservers();
+        System.out.println("Observadores notificados.");
     }
 
     public void crear() {
+        if (this.estado == null) {
+            initializeDefaults();
+        }
         this.estado.crear(this);
     }
 
     public void armar() {
+        if (this.estado == null) {
+            initializeDefaults();
+        }
         this.estado.armar(this);
     }
 
     public void confirmar() {
+        if (this.estado == null) {
+            initializeDefaults();
+        }
         this.estado.confirmar(this);
     }
 
     public void comenzar() {
+        if (this.estado == null) {
+            initializeDefaults();
+        }
         this.estado.comenzar(this);
     }
 
     public void finalizar() {
+        if (this.estado == null) {
+            initializeDefaults();
+        }
         this.estado.finalizar(this);
     }
 
     public void cancelar() {
+        if (this.estado == null) {
+            initializeDefaults();
+        }
         this.estado.cancelar(this);
     }
 
@@ -151,6 +171,9 @@ public class Partido {
     }
 
     public void emparejar() {
+        if (this.estrategiaEmparejamiento == null) {
+            initializeDefaults();
+        }
         this.estrategiaEmparejamiento.emparejar(this);
     }
 }

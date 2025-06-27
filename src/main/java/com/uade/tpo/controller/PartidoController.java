@@ -35,23 +35,13 @@ import com.uade.tpo.model.Estadistica;
 import com.uade.tpo.model.Geolocalization;
 import com.uade.tpo.model.Partido;
 import com.uade.tpo.model.Usuario;
+import com.uade.tpo.model.notification.NotificationManager;
 import com.uade.tpo.repository.EquipoJugadorRepository;
 import com.uade.tpo.repository.GeolocalizationRepository;
 import com.uade.tpo.service.ComentarioService;
-import com.uade.tpo.model.notification.NotificationManager;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import com.uade.tpo.service.EstadisticaService;
 import com.uade.tpo.service.PartidoCronService;
 import com.uade.tpo.service.PartidoService;
-
 
 @RestController
 @RequestMapping("/api/partidos")
@@ -404,7 +394,6 @@ public class PartidoController {
 
         notificationManager.setNotificationType(tipo);
         return ResponseEntity.ok("Estrategia de notificación cambiada a: " + tipo.toUpperCase());
-
 
     }
 

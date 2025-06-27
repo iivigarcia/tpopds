@@ -25,6 +25,7 @@ import com.uade.tpo.repository.PartidoRepository;
 import com.uade.tpo.repository.UsuarioDeporteRepository;
 import com.uade.tpo.repository.UsuarioRepository;
 import com.uade.tpo.model.notification.NotificationManager;
+import com.uade.tpo.model.emparejamientoStrategy.EmparejamientoStrategy;
 
 @Service
 public class PartidoService {
@@ -70,6 +71,8 @@ public class PartidoService {
                 .orElseThrow(() -> new RuntimeException("Organizador no encontrado"));
 
         Partido partido = new Partido();
+        partido.setEstado(new com.uade.tpo.model.state.NecesitamosJugadores());
+        partido.setEstrategiaEmparejamiento(new com.uade.tpo.model.emparejamientoStrategy.EmparejarPorNivel());
         partido.setDeporte(deporte);
         partido.setFecha(dto.getFecha());
         partido.setHora(dto.getHora());
@@ -82,6 +85,8 @@ public class PartidoService {
 
         // Configure notification manager for the partido
         partido.setNotificationManager(notificationManager);
+        notificationManager.setPartido(partido);
+        partido.add(notificationManager);
 
         partido = partidoRepository.save(partido);
 
@@ -113,8 +118,7 @@ public class PartidoService {
         participacionOrganizador.setConfirmado(true); // Organizer is confirmed by default
         equipoJugadorRepository.save(participacionOrganizador);
 
-        // Notify about new partido creation
-        notificationManager.notifyPartidoCreated(partido);
+        partido.notifyObservers();
 
         return Optional.of(partido);
     }
@@ -160,16 +164,39 @@ public class PartidoService {
     public void setEstrategiaEmparejamiento(Long partidoId, String estrategia) {
         Partido partido = partidoRepository.findById(partidoId)
                 .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado"));
+
+        EmparejamientoStrategy nuevaEstrategia = null;
+
         switch (estrategia) {
-            case "EmparejarPorNivel" -> partido.setEstrategiaEmparejamiento(
-                    new com.uade.tpo.model.emparejamientoStrategy.EmparejarPorNivel());
-            case "EmparejarPorUbicacion" -> partido
-                    .setEstrategiaEmparejamiento(new com.uade.tpo.model.emparejamientoStrategy.EmparejarPorUbicacion());
-            case "EmparejarPorHistorial" -> partido
-                    .setEstrategiaEmparejamiento(
-                            new com.uade.tpo.model.emparejamientoStrategy.EmparejarPorHistorial());
+            case "EmparejarPorNivel" -> {
+                nuevaEstrategia = new com.uade.tpo.model.emparejamientoStrategy.EmparejarPorNivel();
+                ((com.uade.tpo.model.emparejamientoStrategy.EmparejarPorNivel) nuevaEstrategia)
+                        .setUsuarioDeporteRepository(usuarioDeporteRepository);
+                ((com.uade.tpo.model.emparejamientoStrategy.EmparejarPorNivel) nuevaEstrategia)
+                        .setEquipoRepository(equipoRepository);
+            }
+            case "EmparejarPorUbicacion" -> {
+                nuevaEstrategia = new com.uade.tpo.model.emparejamientoStrategy.EmparejarPorUbicacion();
+                ((com.uade.tpo.model.emparejamientoStrategy.EmparejarPorUbicacion) nuevaEstrategia)
+                        .setUsuarioDeporteRepository(usuarioDeporteRepository);
+                ((com.uade.tpo.model.emparejamientoStrategy.EmparejarPorUbicacion) nuevaEstrategia)
+                        .setEquipoRepository(equipoRepository);
+            }
+            case "EmparejarPorHistorial" -> {
+                nuevaEstrategia = new com.uade.tpo.model.emparejamientoStrategy.EmparejarPorHistorial();
+                ((com.uade.tpo.model.emparejamientoStrategy.EmparejarPorHistorial) nuevaEstrategia)
+                        .setUsuarioDeporteRepository(usuarioDeporteRepository);
+                ((com.uade.tpo.model.emparejamientoStrategy.EmparejarPorHistorial) nuevaEstrategia)
+                        .setEquipoRepository(equipoRepository);
+                ((com.uade.tpo.model.emparejamientoStrategy.EmparejarPorHistorial) nuevaEstrategia)
+                        .setPartidoRepository(partidoRepository);
+                ((com.uade.tpo.model.emparejamientoStrategy.EmparejarPorHistorial) nuevaEstrategia)
+                        .setEquipoJugadorRepository(equipoJugadorRepository);
+            }
             default -> throw new IllegalArgumentException("Estrategia no válida: " + estrategia);
         }
+
+        partido.setEstrategiaEmparejamiento(nuevaEstrategia);
         partidoRepository.save(partido);
     }
 
@@ -206,6 +233,8 @@ public class PartidoService {
         if (totalJugadoresActuales >= totalJugadoresNecesarios) {
             // Ensure notification manager is configured
             partido.setNotificationManager(notificationManager);
+            notificationManager.setPartido(partido);
+            partido.add(notificationManager);
             partido.armar();
         }
 
@@ -217,6 +246,8 @@ public class PartidoService {
                 .orElseThrow(() -> new IllegalArgumentException("Partido no encontrado"));
         // Ensure notification manager is configured
         partido.setNotificationManager(notificationManager);
+        notificationManager.setPartido(partido);
+        partido.add(notificationManager);
         partido.cancelar();
         partidoRepository.save(partido);
     }
@@ -290,6 +321,8 @@ public class PartidoService {
         if (totalJugadoresActuales >= partido.getCantidadJugadores()) {
             // Ensure notification manager is configured
             partido.setNotificationManager(notificationManager);
+            notificationManager.setPartido(partido);
+            partido.add(notificationManager);
             partido.armar();
         }
 
@@ -334,6 +367,8 @@ public class PartidoService {
         if (totalJugadoresConfirmados >= totalJugadoresNecesarios) {
             // Ensure notification manager is configured
             partido.setNotificationManager(notificationManager);
+            notificationManager.setPartido(partido);
+            partido.add(notificationManager);
             partido.confirmar();
             partidoRepository.save(partido);
         }
@@ -368,6 +403,8 @@ public class PartidoService {
         if (totalJugadoresConfirmados >= totalJugadoresNecesarios) {
             // Ensure notification manager is configured
             partido.setNotificationManager(notificationManager);
+            notificationManager.setPartido(partido);
+            partido.add(notificationManager);
             partido.confirmar();
             partidoRepository.save(partido);
         }
@@ -387,6 +424,8 @@ public class PartidoService {
 
         // Ensure notification manager is configured
         partido.setNotificationManager(notificationManager);
+        notificationManager.setPartido(partido);
+        partido.add(notificationManager);
         partido.comenzar();
         partidoRepository.save(partido);
     }
@@ -397,6 +436,8 @@ public class PartidoService {
 
         // Ensure notification manager is configured
         partido.setNotificationManager(notificationManager);
+        notificationManager.setPartido(partido);
+        partido.add(notificationManager);
         partido.finalizar();
         partidoRepository.save(partido);
     }
