@@ -161,6 +161,11 @@ public class PartidoController {
             dto.setEstadisticas(
                     partido.getEstadisticas().stream().map(this::convertEstadisticaToDto).collect(Collectors.toList()));
         }
+
+        if (partido.getGanador() != null) {
+            dto.setEquipoGanador(partido.getGanador().getNombre());
+        }
+
         return dto;
     }
 

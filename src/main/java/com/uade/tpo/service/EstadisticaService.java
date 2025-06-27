@@ -5,6 +5,7 @@ import com.uade.tpo.dto.EstadisticaUpdateDTO;
 import com.uade.tpo.model.Estadistica;
 import com.uade.tpo.model.Partido;
 import com.uade.tpo.model.Usuario;
+import com.uade.tpo.model.Equipo;
 import com.uade.tpo.repository.EstadisticaRepository;
 import com.uade.tpo.repository.PartidoRepository;
 import com.uade.tpo.repository.UsuarioRepository;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 public class EstadisticaService {
@@ -58,7 +61,11 @@ public class EstadisticaService {
         estadistica.setAmonestaciones(dto.getAmonestaciones());
         estadistica.setMejorJugador(dto.isMejorJugador());
 
-        return Optional.of(estadisticaRepository.save(estadistica));
+        Estadistica estadisticaGuardada = estadisticaRepository.save(estadistica);
+
+        calcularYActualizarEquipoGanador(partido);
+
+        return Optional.of(estadisticaGuardada);
     }
 
     public Optional<Estadistica> modificarEstadistica(Long estadisticaId, EstadisticaUpdateDTO dto) {
@@ -76,7 +83,59 @@ public class EstadisticaService {
         estadistica.setAmonestaciones(dto.getAmonestaciones());
         estadistica.setMejorJugador(dto.isMejorJugador());
 
-        return Optional.of(estadisticaRepository.save(estadistica));
+        Estadistica estadisticaActualizada = estadisticaRepository.save(estadistica);
+
+        calcularYActualizarEquipoGanador(partido);
+
+        return Optional.of(estadisticaActualizada);
+    }
+
+    private void calcularYActualizarEquipoGanador(Partido partido) {
+        List<Estadistica> estadisticas = estadisticaRepository.findByPartidoId(partido.getId());
+
+        Map<Equipo, Integer> anotacionesPorEquipo = new HashMap<>();
+
+        for (Equipo equipo : partido.getEquipos()) {
+            anotacionesPorEquipo.put(equipo, 0);
+        }
+
+        for (Estadistica estadistica : estadisticas) {
+            Usuario jugador = estadistica.getJugador();
+
+            for (Equipo equipo : partido.getEquipos()) {
+                if (equipoJugadorRepository.findByEquipoAndUsuario(equipo, jugador).isPresent()) {
+                    int anotacionesActuales = anotacionesPorEquipo.get(equipo);
+                    anotacionesPorEquipo.put(equipo, anotacionesActuales + estadistica.getAnotaciones());
+                    break;
+                }
+            }
+        }
+
+        Equipo equipoGanador = null;
+        int maxAnotaciones = -1;
+
+        for (Map.Entry<Equipo, Integer> entry : anotacionesPorEquipo.entrySet()) {
+            if (entry.getValue() > maxAnotaciones) {
+                maxAnotaciones = entry.getValue();
+                equipoGanador = entry.getKey();
+            }
+        }
+
+        boolean hayEmpate = false;
+        for (Map.Entry<Equipo, Integer> entry : anotacionesPorEquipo.entrySet()) {
+            if (entry.getValue() == maxAnotaciones && !entry.getKey().equals(equipoGanador)) {
+                hayEmpate = true;
+                break;
+            }
+        }
+
+        if (hayEmpate) {
+            partido.setGanador(null);
+        } else {
+            partido.setGanador(equipoGanador);
+        }
+
+        partidoRepository.save(partido);
     }
 
     public List<Estadistica> obtenerEstadisticasPorPartido(Long partidoId) {

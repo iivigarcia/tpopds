@@ -20,4 +20,5 @@ public class PartidoDTO {
   private String estrategiaEmparejamiento;
   private List<ComentarioDTO> comentarios;
   private List<EstadisticaDTO> estadisticas;
+  private String equipoGanador;
 }
